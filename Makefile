@@ -34,4 +34,4 @@ Tile.o:	Tile.cpp
 			$(CC) $(CFLAGS) Tile.cpp
 
 clean:
-			rm -rf *o Riggster
+			rm -rf *.o Riggster
