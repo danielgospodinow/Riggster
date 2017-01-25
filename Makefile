@@ -6,32 +6,32 @@ all: riggster
 
 riggster: Riggster.o Game.o Character.o Level.o SdlComponents.o Sprite.o stdafx.o tinyxml2.o Tile.o
 			$(CC) Riggster.o Game.o Character.o Level.o SdlComponents.o Sprite.o stdafx.o tinyxml2.o Tile.o -o Riggster $(LINKER_FLAGS)
-Riggster.o: Riggster.cpp
-			$(CC) $(CFLAGS) Riggster.cpp
+Riggster.o: src/Riggster.cpp
+			$(CC) $(CFLAGS) src/Riggster.cpp
 
-Game.o:	Game.cpp
-			$(CC) $(CFLAGS) Game.cpp
+Game.o:	src/Game.cpp
+			$(CC) $(CFLAGS) src/Game.cpp
 
-Character.o:	Character.cpp
-			$(CC) $(CFLAGS) Character.cpp
+Character.o:	src/Character.cpp
+			$(CC) $(CFLAGS) src/Character.cpp
 
-Level.o:	Level.cpp
-			$(CC) $(CFLAGS) Level.cpp
+Level.o:	src/Level.cpp
+			$(CC) $(CFLAGS) src/Level.cpp
 
-SdlComponents.o:	SdlComponents.cpp
-			$(CC) $(CFLAGS) SdlComponents.cpp
+SdlComponents.o:	src/SdlComponents.cpp
+			$(CC) $(CFLAGS) src/SdlComponents.cpp
 
-Sprite.o:	Sprite.cpp
-			$(CC) $(CFLAGS) Sprite.cpp
+Sprite.o:	src/Sprite.cpp
+			$(CC) $(CFLAGS) src/Sprite.cpp
 
-stdafx.o:	stdafx.cpp
-			$(CC) $(CFLAGS) stdafx.cpp
+stdafx.o:	src/stdafx.cpp
+			$(CC) $(CFLAGS) src/stdafx.cpp
 
-tinyxml2.o:	tinyxml2.cpp
-			$(CC) $(CFLAGS) tinyxml2.cpp
+tinyxml2.o:	src/tinyxml2.cpp
+			$(CC) $(CFLAGS) src/tinyxml2.cpp
 
-Tile.o:	Tile.cpp
-			$(CC) $(CFLAGS) Tile.cpp
+Tile.o:	src/Tile.cpp
+			$(CC) $(CFLAGS) src/Tile.cpp
 
 clean:
 			rm -rf *.o Riggster
