@@ -63,10 +63,20 @@ public abstract class Character implements Actor {
     @Override
     public int attack() {
         if(this.weapon != null && this.spell != null) {
-            return Math.max(this.weapon.getDamage(), this.spell.getDamage());
+            if(spell.getManaCost() <= this.getMana()) {
+                if(this.weapon.getDamage() > this.spell.getDamage()) {
+                    return this.weapon.getDamage();
+                } else {
+                    this.mana -= spell.getManaCost();
+                    return this.spell.getDamage();
+                }
+            } else {
+                return this.weapon.getDamage();
+            }
         } else if(this.weapon != null) {
             return this.weapon.getDamage();
-        } else if(this.spell != null) {
+        } else if(this.spell != null && spell.getManaCost() <= this.getMana()) {
+            this.mana -= spell.getManaCost();
             return this.spell.getDamage();
         } else {
             return 0;

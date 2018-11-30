@@ -1,4 +1,4 @@
-package com.danielgospodinow.riggster;
+package com.danielgospodinow.riggster.networking;
 
 import java.io.*;
 import java.net.Socket;
