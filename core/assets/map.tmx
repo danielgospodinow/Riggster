@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.2" tiledversion="1.2.1" orientation="orthogonal" renderorder="right-down" width="75" height="50" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="11">
+<map version="1.2" tiledversion="1.2.1" orientation="orthogonal" renderorder="right-down" width="75" height="50" tilewidth="16" tileheight="16" infinite="0" nextlayerid="7" nextobjectid="27">
  <tileset firstgid="1" source="map.tsx"/>
  <layer id="1" name="layer1" width="75" height="50">
   <data encoding="base64" compression="zlib">
@@ -13,18 +13,27 @@
  </layer>
  <layer id="3" name="layer3" width="75" height="50">
   <data encoding="base64" compression="zlib">
-   eJztzkENAAAIBKDzZf/GxnBOSEACAAAAAAAAAAAAAAAAAFzVtT3gkwFOFwAJ
+   eJzt2TsKwkAUhtEYBLeiRdxVtHVb7tJ0KfLgF5QZMufAbUP4mOJm0nW/9zz/4aEHpVVOq5xWOa1yWuW0ymmV0yqnVU6rnFY5rXJa5bTKjVOr+wGnZa9+Hva9+3nY51zlnCsAoJTrtH/c7CAAQOVq2VlK32GvzdD43fY3/AfKaZXTKqdVTqucVktbe5NWOa1yWuVqbVX6e2ZtHpW2YulyKv0GtOQDps0r+w==
   </data>
  </layer>
  <objectgroup id="4" name="staticObjects">
-  <object id="1" x="872" y="280.667"/>
   <object id="2" x="753" y="401.5" width="44" height="43.5"/>
-  <object id="3" x="880" y="513" width="31" height="46"/>
-  <object id="4" x="209" y="608.5" width="48.5" height="31.5"/>
   <object id="5" x="383.5" y="417" width="129.5" height="127"/>
-  <object id="6" x="224.5" y="239.5" width="48.5" height="32.5"/>
   <object id="7" x="256" y="128" width="48.5" height="47.5"/>
-  <object id="9" x="480.5" y="287" width="32" height="49.5"/>
+  <object id="17" x="816" y="720" width="48.6667" height="46.6667"/>
+  <object id="18" x="670.667" y="176" width="49.3333" height="46.6667"/>
+  <object id="19" x="366.667" y="0.666667" width="50" height="47.3333"/>
+  <object id="23" x="1008" y="256" width="50" height="64"/>
+ </objectgroup>
+ <objectgroup id="6" name="treasures">
+  <object id="11" x="872" y="280.667"/>
+  <object id="13" x="480" y="287.25" width="32" height="49.5"/>
+  <object id="14" x="222.417" y="240.417" width="48.5" height="32.5"/>
+  <object id="15" x="208.417" y="609.583" width="48.5" height="31.5"/>
+  <object id="22" x="879.833" y="511.667" width="31" height="46"/>
+  <object id="24" x="653" y="544" width="33" height="14"/>
+  <object id="25" x="497" y="674" width="33" height="14"/>
+  <object id="26" x="144" y="433" width="33" height="14"/>
  </objectgroup>
  <objectgroup id="5" name="exits">
   <object id="10" x="1112" y="759.091"/>

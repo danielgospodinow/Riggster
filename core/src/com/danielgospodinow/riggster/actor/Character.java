@@ -1,9 +1,10 @@
 package com.danielgospodinow.riggster.actor;
 
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.danielgospodinow.riggster.treasure.Spell;
 import com.danielgospodinow.riggster.treasure.Weapon;
 
-public abstract class Character implements Actor {
+public abstract class Character extends Sprite implements Actor {
 
     private Weapon weapon = null;
     private Spell spell = null;

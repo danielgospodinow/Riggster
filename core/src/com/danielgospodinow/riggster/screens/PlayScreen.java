@@ -9,16 +9,18 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.danielgospodinow.riggster.Character;
 import com.danielgospodinow.riggster.Game;
 import com.danielgospodinow.riggster.scenes.HUD;
 
 public class PlayScreen implements Screen {
 
-    private static final int WORLD_WIDTH = 800;
-    private static final int WORLD_HEIGHT = 480;
+    private static final int WORLD_WIDTH = 1200;
+    private static final int WORLD_HEIGHT = 800;
 
     private Game game;
 
@@ -33,12 +35,20 @@ public class PlayScreen implements Screen {
     private int mapWidth;
     private int mapHeight;
 
+    private Character character;
+
     public PlayScreen(Game game) {
         this.game = game;
 
-        loadHud();
         loadMap();
         loadCamera();
+        loadCharacter();
+        loadHud();
+    }
+
+    private void loadCharacter() {
+        this.character = new Character("Character", 100, 100);
+        this.character.getSprite().setPosition(0, this.mapHeight - this.character.getSprite().getHeight());
     }
 
     private void loadMap() {
@@ -77,33 +87,80 @@ public class PlayScreen implements Screen {
 
         this.mapRenderer.render();
 
-        //?
         this.game.spriteBatch.setProjectionMatrix(this.hud.getStage().getCamera().combined);
         this.hud.getStage().draw();
+
+        this.game.spriteBatch.begin();
+        this.character.getSprite().draw(this.game.spriteBatch);
+        this.game.spriteBatch.end();
 
     }
 
     public void update(float deltaTime) {
         handleInput(deltaTime);
+        updateCamera();
+
         this.camera.update();
         this.mapRenderer.setView(this.camera);
     }
 
     private void handleInput(float deltaTime) {
-        if(Gdx.input.isKeyPressed(Input.Keys.W)) {
-            this.camera.position.y += 150 * deltaTime;
+        if(Gdx.input.isKeyJustPressed(Input.Keys.W)) {
+            this.character.move(Character.MoveDirection.UP);
         }
 
-        if(Gdx.input.isKeyPressed(Input.Keys.S)) {
-            this.camera.position.y -= 150 * deltaTime;
+        if(Gdx.input.isKeyJustPressed(Input.Keys.S)) {
+            this.character.move(Character.MoveDirection.DOWN);
         }
 
-        if(Gdx.input.isKeyPressed(Input.Keys.D)) {
-            this.camera.position.x += 150 * deltaTime;
+        if(Gdx.input.isKeyJustPressed(Input.Keys.D)) {
+
+            this.character.move(Character.MoveDirection.RIGHT);
         }
 
-        if(Gdx.input.isKeyPressed(Input.Keys.A)) {
-            this.camera.position.x -= 150 * deltaTime;
+        if(Gdx.input.isKeyJustPressed(Input.Keys.A)) {
+            this.character.move(Character.MoveDirection.LEFT);
+        }
+    }
+
+    private void updateCamera() {
+        this.camera.position.x = this.character.getSprite().getX();
+        this.camera.position.y = this.character.getSprite().getY();
+
+        // The left boundary of the map (x)
+        int mapLeft = 0;
+        // The right boundary of the map (x + width)
+        int mapRight = 0 + mapWidth;
+        // The bottom boundary of the map (y)
+        int mapBottom = 0;
+        // The top boundary of the map (y + height)
+        int mapTop = 0 + mapHeight;
+        // The camera dimensions, halved
+        float cameraHalfWidth = this.camera.viewportWidth * 0.5f;
+        float cameraHalfHeight = this.camera.viewportHeight * 0.5f;
+
+        // Move camera after player as normal
+        float cameraLeft = this.camera.position.x - cameraHalfWidth;
+        float cameraRight = this.camera.position.x + cameraHalfWidth;
+        float cameraBottom = this.camera.position.y - cameraHalfHeight;
+        float cameraTop = this.camera.position.y + cameraHalfHeight;
+
+        // Horizontal axis
+        if(mapWidth < this.camera.viewportWidth) {
+            this.camera.position.x = mapRight / 2;
+        } else if(cameraLeft <= mapLeft) {
+            this.camera.position.x = mapLeft + cameraHalfWidth;
+        } else if(cameraRight >= mapRight) {
+            this.camera.position.x = mapRight - cameraHalfWidth;
+        }
+
+        // Vertical axis
+        if(mapHeight < this.camera.viewportHeight) {
+            this.camera.position.y = mapTop / 2;
+        } else if(cameraBottom <= mapBottom) {
+            this.camera.position.y = mapBottom + cameraHalfHeight;
+        } else if(cameraTop >= mapTop) {
+            this.camera.position.y = mapTop - cameraHalfHeight;
         }
     }
 
