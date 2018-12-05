@@ -9,18 +9,34 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.danielgospodinow.riggster.Character;
 import com.danielgospodinow.riggster.Game;
+import com.danielgospodinow.riggster.actor.Position;
+import com.danielgospodinow.riggster.networking.Client;
+import com.danielgospodinow.riggster.networking.NetworkOperations;
+import com.danielgospodinow.riggster.networking.NetworkOperator;
 import com.danielgospodinow.riggster.scenes.HUD;
+
+import java.util.HashMap;
 
 public class PlayScreen implements Screen {
 
     private static final int WORLD_WIDTH = 1200;
     private static final int WORLD_HEIGHT = 800;
+    private static int MAP_WIDTH;
+    private static int MAP_HEIGHT;
+    private static int TILEMAP_WIDTH;
+    private static int TILEMAP_HEIGHT;
+
+    public static int getMapWidth() { return MAP_WIDTH; }
+    public static int getMapHeight() { return  MAP_HEIGHT; }
+    public static int getTilemapWidth() { return TILEMAP_WIDTH; }
+    public static int getTilemapHeight() { return TILEMAP_HEIGHT; }
+
+    private NetworkOperator networkOperator;
 
     private Game game;
 
@@ -32,23 +48,30 @@ public class PlayScreen implements Screen {
     private TmxMapLoader mapLoader;
     private TiledMap map;
     private OrthogonalTiledMapRenderer mapRenderer;
-    private int mapWidth;
-    private int mapHeight;
 
     private Character character;
+    private HashMap<Integer, Character> otherCharacters;
 
     public PlayScreen(Game game) {
         this.game = game;
 
+        loadNetwork();
         loadMap();
         loadCamera();
         loadCharacter();
         loadHud();
     }
 
+    private void loadNetwork() {
+        this.networkOperator = new NetworkOperator(new Client("localhost", 3000));
+    }
+
     private void loadCharacter() {
         this.character = new Character("Character", 100, 100);
-        this.character.getSprite().setPosition(0, this.mapHeight - this.character.getSprite().getHeight());
+        this.character.getSprite().setPosition(0, MAP_HEIGHT - this.character.getSprite().getHeight());
+
+        this.otherCharacters = new HashMap<Integer, Character>();
+        //TODO: send a request to the server to get all other characters
     }
 
     private void loadMap() {
@@ -59,10 +82,11 @@ public class PlayScreen implements Screen {
         this.map = this.mapLoader.load("map.tmx", params);
         this.mapRenderer = new OrthogonalTiledMapRenderer(this.map);
 
-        this.mapHeight = (this.map.getProperties().get("height", Integer.class) * this.map.getProperties().get(
-                "tileheight", Integer.class));
-        this.mapWidth = (this.map.getProperties().get("width", Integer.class) * this.map.getProperties().get(
-                "tilewidth", Integer.class));
+        TILEMAP_WIDTH = this.map.getProperties().get("width", Integer.class);
+        TILEMAP_HEIGHT = this.map.getProperties().get("height", Integer.class);
+
+        MAP_WIDTH = (TILEMAP_WIDTH * this.map.getProperties().get("tilewidth", Integer.class));
+        MAP_HEIGHT = (TILEMAP_HEIGHT * this.map.getProperties().get("tileheight", Integer.class));
     }
 
     private void loadHud() {
@@ -74,13 +98,18 @@ public class PlayScreen implements Screen {
         this.cameraViewport = new StretchViewport(WORLD_WIDTH, WORLD_HEIGHT, this.camera);
 
         Vector2 cameraStartPoint = new Vector2(this.cameraViewport.getWorldWidth() / 2,
-                this.cameraViewport.getWorldHeight() / 2 + (float) this.mapHeight / 2 - (this.cameraViewport.getWorldHeight() - (float) this.mapHeight / 2));
+                this.cameraViewport.getWorldHeight() / 2 + (float) MAP_HEIGHT / 2 - (this.cameraViewport.getWorldHeight() - (float) MAP_HEIGHT / 2));
         this.camera.position.set(cameraStartPoint, 0);
     }
 
     @Override
     public void render(float delta) {
-        this.update(delta);
+        handleInput(delta);
+        updateCamera();
+        handleNetwork();
+
+        this.camera.update();
+        this.mapRenderer.setView(this.camera);
 
         Gdx.gl.glClearColor(0,0,0,1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -91,35 +120,65 @@ public class PlayScreen implements Screen {
         this.hud.getStage().draw();
 
         this.game.spriteBatch.begin();
+        for(Character otherCharacter: this.otherCharacters.values()) {
+            otherCharacter.getSprite().draw(this.game.spriteBatch);
+        }
         this.character.getSprite().draw(this.game.spriteBatch);
         this.game.spriteBatch.end();
 
     }
 
-    public void update(float deltaTime) {
-        handleInput(deltaTime);
-        updateCamera();
+    private void handleNetwork() {
+        //TODO: move all that network logic in NetworkOperator
+        String message = this.networkOperator.readMessage();
+        if(message == null) {
+            return;
+        }
 
-        this.camera.update();
-        this.mapRenderer.setView(this.camera);
+        String[] commands = message.split(" ");
+        switch (NetworkOperations.getOperation(commands[0])) {
+        case CHARACTER_POSITION:
+            int characterID = Integer.parseInt(commands[1]);
+            int row = Integer.parseInt(commands[2]);
+            int col = Integer.parseInt(commands[3]);
+
+            Character character = this.otherCharacters.get(characterID);
+            if(character == null) {
+                character = new Character(String.valueOf(characterID), 100, 100, new Position(row, col));
+                character.getSprite().setPosition(0, MAP_HEIGHT - this.character.getSprite().getHeight());
+                this.otherCharacters.put(characterID, character);
+            } else {
+                character.setPosition(new Position(row, col));
+            }
+
+            break;
+        }
     }
 
     private void handleInput(float deltaTime) {
+        boolean sucUp = false;
+        boolean sucDown = false;
+        boolean sucRight = false;
+        boolean sucLeft = false;
+
         if(Gdx.input.isKeyJustPressed(Input.Keys.W)) {
-            this.character.move(Character.MoveDirection.UP);
+            sucUp = this.character.move(Character.MoveDirection.UP);
         }
 
         if(Gdx.input.isKeyJustPressed(Input.Keys.S)) {
-            this.character.move(Character.MoveDirection.DOWN);
+            sucDown = this.character.move(Character.MoveDirection.DOWN);
         }
 
         if(Gdx.input.isKeyJustPressed(Input.Keys.D)) {
-
-            this.character.move(Character.MoveDirection.RIGHT);
+            sucRight = this.character.move(Character.MoveDirection.RIGHT);
         }
 
         if(Gdx.input.isKeyJustPressed(Input.Keys.A)) {
-            this.character.move(Character.MoveDirection.LEFT);
+            sucLeft = this.character.move(Character.MoveDirection.LEFT);
+        }
+
+        if(sucUp || sucDown || sucRight || sucLeft) {
+            this.networkOperator.sendMyNewPosition(character.getPosition());
         }
     }
 
@@ -127,36 +186,29 @@ public class PlayScreen implements Screen {
         this.camera.position.x = this.character.getSprite().getX();
         this.camera.position.y = this.character.getSprite().getY();
 
-        // The left boundary of the map (x)
         int mapLeft = 0;
-        // The right boundary of the map (x + width)
-        int mapRight = 0 + mapWidth;
-        // The bottom boundary of the map (y)
+        int mapRight = 0 + MAP_WIDTH;
         int mapBottom = 0;
-        // The top boundary of the map (y + height)
-        int mapTop = 0 + mapHeight;
-        // The camera dimensions, halved
+        int mapTop = 0 + MAP_HEIGHT;
+
         float cameraHalfWidth = this.camera.viewportWidth * 0.5f;
         float cameraHalfHeight = this.camera.viewportHeight * 0.5f;
 
-        // Move camera after player as normal
         float cameraLeft = this.camera.position.x - cameraHalfWidth;
         float cameraRight = this.camera.position.x + cameraHalfWidth;
         float cameraBottom = this.camera.position.y - cameraHalfHeight;
         float cameraTop = this.camera.position.y + cameraHalfHeight;
 
-        // Horizontal axis
-        if(mapWidth < this.camera.viewportWidth) {
-            this.camera.position.x = mapRight / 2;
+        if(MAP_WIDTH < this.camera.viewportWidth) {
+            this.camera.position.x = (float) mapRight / 2;
         } else if(cameraLeft <= mapLeft) {
             this.camera.position.x = mapLeft + cameraHalfWidth;
         } else if(cameraRight >= mapRight) {
             this.camera.position.x = mapRight - cameraHalfWidth;
         }
 
-        // Vertical axis
-        if(mapHeight < this.camera.viewportHeight) {
-            this.camera.position.y = mapTop / 2;
+        if(MAP_HEIGHT < this.camera.viewportHeight) {
+            this.camera.position.y = (float) mapTop / 2;
         } else if(cameraBottom <= mapBottom) {
             this.camera.position.y = mapBottom + cameraHalfHeight;
         } else if(cameraTop >= mapTop) {
