@@ -6,6 +6,8 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.maps.MapObject;
+import com.badlogic.gdx.maps.MapObjects;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
@@ -20,7 +22,11 @@ import com.danielgospodinow.riggster.networking.NetworkOperations;
 import com.danielgospodinow.riggster.networking.NetworkOperator;
 import com.danielgospodinow.riggster.scenes.HUD;
 
+import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 public class PlayScreen implements Screen {
 
@@ -48,9 +54,10 @@ public class PlayScreen implements Screen {
     private TmxMapLoader mapLoader;
     private TiledMap map;
     private OrthogonalTiledMapRenderer mapRenderer;
+    public static List<Rectangle> staticObjects = new ArrayList<Rectangle>();
 
     private Character character;
-    private HashMap<Integer, Character> otherCharacters;
+    private HashMap<String, Character> otherCharacters;
 
     public PlayScreen(Game game) {
         this.game = game;
@@ -67,10 +74,10 @@ public class PlayScreen implements Screen {
     }
 
     private void loadCharacter() {
-        this.character = new Character("Character", 100, 100);
+        this.character = new Character("Hakankt", 100, 100);
         this.character.getSprite().setPosition(0, MAP_HEIGHT - this.character.getSprite().getHeight());
 
-        this.otherCharacters = new HashMap<Integer, Character>();
+        this.otherCharacters = new HashMap<String, Character>();
         //TODO: send a request to the server to get all other characters
     }
 
@@ -87,6 +94,18 @@ public class PlayScreen implements Screen {
 
         MAP_WIDTH = (TILEMAP_WIDTH * this.map.getProperties().get("tilewidth", Integer.class));
         MAP_HEIGHT = (TILEMAP_HEIGHT * this.map.getProperties().get("tileheight", Integer.class));
+
+        MapObjects mapObjects = this.map.getLayers().get(3).getObjects();
+        Iterator<MapObject> iter = mapObjects.iterator();
+        while(iter.hasNext()) {
+            MapObject mapObject = iter.next();
+            int x = (int)(float)((Float) mapObject.getProperties().get("x"));
+            int y = (int)(float)((Float) mapObject.getProperties().get("y"));
+            int width = (int)(float)((Float) mapObject.getProperties().get("width"));
+            int height = (int)(float)((Float) mapObject.getProperties().get("height"));
+
+            staticObjects.add(new Rectangle(x, y, width, height));
+        }
     }
 
     private void loadHud() {
@@ -121,9 +140,9 @@ public class PlayScreen implements Screen {
 
         this.game.spriteBatch.begin();
         for(Character otherCharacter: this.otherCharacters.values()) {
-            otherCharacter.getSprite().draw(this.game.spriteBatch);
+            otherCharacter.draw(this.game.spriteBatch);
         }
-        this.character.getSprite().draw(this.game.spriteBatch);
+        this.character.draw(this.game.spriteBatch);
         this.game.spriteBatch.end();
 
     }
@@ -138,15 +157,15 @@ public class PlayScreen implements Screen {
         String[] commands = message.split(" ");
         switch (NetworkOperations.getOperation(commands[0])) {
         case CHARACTER_POSITION:
-            int characterID = Integer.parseInt(commands[1]);
+            String characterName = commands[1];
             int row = Integer.parseInt(commands[2]);
             int col = Integer.parseInt(commands[3]);
 
-            Character character = this.otherCharacters.get(characterID);
+            Character character = this.otherCharacters.get(characterName);
             if(character == null) {
-                character = new Character(String.valueOf(characterID), 100, 100, new Position(row, col));
+                character = new Character(characterName, 100, 100, new Position(row, col));
                 character.getSprite().setPosition(0, MAP_HEIGHT - this.character.getSprite().getHeight());
-                this.otherCharacters.put(characterID, character);
+                this.otherCharacters.put(characterName, character);
             } else {
                 character.setPosition(new Position(row, col));
             }
@@ -178,7 +197,7 @@ public class PlayScreen implements Screen {
         }
 
         if(sucUp || sucDown || sucRight || sucLeft) {
-            this.networkOperator.sendMyNewPosition(character.getPosition());
+            this.networkOperator.sendMyNewPosition(this.character.getName(), character.getPosition());
         }
     }
 

@@ -136,9 +136,9 @@ public class Client {
             }
 
             fos.close();
-
-            System.out.println("File received successfully!");
         }
+
+        System.out.println("Files received successfully!");
     }
 
     private void printError(String message, Exception error) {

@@ -14,7 +14,8 @@ public class NetworkOperator {
         return this.client.readMessage();
     }
 
-    public void sendMyNewPosition(Position newPosition) {
-        this.client.writeMessage(String.format("%s %d %d", NetworkOperations.CHARACTER_POSITION.toString(), newPosition.row, newPosition.col));
+    public void sendMyNewPosition(String name, Position newPosition) {
+        this.client.writeMessage(String.format("%s %s %d %d", NetworkOperations.CHARACTER_POSITION.toString(), name,
+                newPosition.row, newPosition.col));
     }
 }

@@ -35,21 +35,20 @@ public class ServerThread {
             System.exit(1);
         }
 
-        Server.updatePlayerPosition(this.getPort(), new Position(0,0));
-
         new Thread(() -> {
             try {
                 while(this.isConnected()) {
                     String message = this.reader.readUTF();
-                    String[] args = message.split(" ");
 
+                    String[] args = message.split(" ");
                     switch (NetworkOperations.getOperation(args[0])) {
                     case CHARACTER_POSITION:
-                        int row = Integer.parseInt(args[1]);
-                        int col = Integer.parseInt(args[2]);
+                        String name = args[1];
+                        int row = Integer.parseInt(args[2]);
+                        int col = Integer.parseInt(args[3]);
 
                         Server.updatePlayerPosition(this.getPort(), new Position(row, col));
-                        Server.broadcastMessage(String.format("P %d %d %d", this.getPort(), row, col), this);
+                        Server.broadcastMessage(String.format("P %s %d %d", name, row, col), this);
                         break;
                     }
                 }

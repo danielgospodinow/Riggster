@@ -14,3 +14,12 @@ The game will be multiplayer and It'll be made with Java and LibGDX instead of C
   <img src = "https://i.imgur.com/i32K3ow.png"/>
 </p>
 
+<p align="center">
+  <img src = "https://i.imgur.com/g4VacXA.png"/>
+</p>
+
+<p align="center">
+  <img src = "https://i.imgur.com/MMnkufU.png"/>
+</p>
+
+

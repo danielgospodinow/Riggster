@@ -65,10 +65,6 @@ public class Server {
         clientPositions.put(playerID, position);
     }
 
-    public static ConcurrentHashMap<Integer, Position> getClients() {
-        return clientPositions;
-    }
-
     private static Socket acceptClient() {
         Socket socket = null;
 
