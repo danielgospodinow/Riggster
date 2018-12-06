@@ -48,7 +48,9 @@ public class Client {
         }
 
         this.receivedMessages = new LinkedList<String>();
+    }
 
+    public void startAsyncReading() {
         class ReaderTask implements Runnable {
             Client client;
 
@@ -119,6 +121,16 @@ public class Client {
 
     public boolean isConnected() {
         return this.clientSocket != null && this.clientSocket.isConnected();
+    }
+
+    public DataInputStream getSocketInputStream() {
+        try {
+            return new DataInputStream(this.clientSocket.getInputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     private void receiveFilesFromServer(Socket serverSocket) throws IOException {

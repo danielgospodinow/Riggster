@@ -18,14 +18,12 @@ import com.danielgospodinow.riggster.Character;
 import com.danielgospodinow.riggster.Game;
 import com.danielgospodinow.riggster.actor.Position;
 import com.danielgospodinow.riggster.networking.Client;
-import com.danielgospodinow.riggster.networking.NetworkOperations;
 import com.danielgospodinow.riggster.networking.NetworkOperator;
 import com.danielgospodinow.riggster.scenes.HUD;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 public class PlayScreen implements Screen {
@@ -57,7 +55,7 @@ public class PlayScreen implements Screen {
     public static List<Rectangle> staticObjects = new ArrayList<Rectangle>();
 
     private Character character;
-    private HashMap<String, Character> otherCharacters;
+    private HashMap<Integer, Character> otherCharacters;
 
     public PlayScreen(Game game) {
         this.game = game;
@@ -74,11 +72,11 @@ public class PlayScreen implements Screen {
     }
 
     private void loadCharacter() {
-        this.character = new Character("Hakankt", 100, 100);
-        this.character.getSprite().setPosition(0, MAP_HEIGHT - this.character.getSprite().getHeight());
+        this.character = new Character("character4", "Dankt", new Position(1, 1));
+        this.networkOperator.registerMyCharacter(this.character);
+        this.otherCharacters = this.networkOperator.retrieveOtherCharacters();
 
-        this.otherCharacters = new HashMap<String, Character>();
-        //TODO: send a request to the server to get all other characters
+        this.networkOperator.startAsyncReading();
     }
 
     private void loadMap() {
@@ -95,14 +93,13 @@ public class PlayScreen implements Screen {
         MAP_WIDTH = (TILEMAP_WIDTH * this.map.getProperties().get("tilewidth", Integer.class));
         MAP_HEIGHT = (TILEMAP_HEIGHT * this.map.getProperties().get("tileheight", Integer.class));
 
+        // Load static objects from the map
         MapObjects mapObjects = this.map.getLayers().get(3).getObjects();
-        Iterator<MapObject> iter = mapObjects.iterator();
-        while(iter.hasNext()) {
-            MapObject mapObject = iter.next();
-            int x = (int)(float)((Float) mapObject.getProperties().get("x"));
-            int y = (int)(float)((Float) mapObject.getProperties().get("y"));
-            int width = (int)(float)((Float) mapObject.getProperties().get("width"));
-            int height = (int)(float)((Float) mapObject.getProperties().get("height"));
+        for (MapObject mapObject : mapObjects) {
+            int x = (int) (float) ((Float) mapObject.getProperties().get("x"));
+            int y = (int) (float) ((Float) mapObject.getProperties().get("y"));
+            int width = (int) (float) ((Float) mapObject.getProperties().get("width"));
+            int height = (int) (float) ((Float) mapObject.getProperties().get("height"));
 
             staticObjects.add(new Rectangle(x, y, width, height));
         }
@@ -123,21 +120,29 @@ public class PlayScreen implements Screen {
 
     @Override
     public void render(float delta) {
+        // Handle input
         handleInput(delta);
-        updateCamera();
-        handleNetwork();
 
+        // Update camera
+        updateCamera();
         this.camera.update();
         this.mapRenderer.setView(this.camera);
 
+        // Clear the screen
         Gdx.gl.glClearColor(0,0,0,1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        // Render map
         this.mapRenderer.render();
 
+        // Render the HUD
         this.game.spriteBatch.setProjectionMatrix(this.hud.getStage().getCamera().combined);
         this.hud.getStage().draw();
 
+        // Fetch other players' statuses
+        this.networkOperator.updateOtherPlayers(this.otherCharacters);
+
+        // Draw everything
         this.game.spriteBatch.begin();
         for(Character otherCharacter: this.otherCharacters.values()) {
             otherCharacter.draw(this.game.spriteBatch);
@@ -145,33 +150,6 @@ public class PlayScreen implements Screen {
         this.character.draw(this.game.spriteBatch);
         this.game.spriteBatch.end();
 
-    }
-
-    private void handleNetwork() {
-        //TODO: move all that network logic in NetworkOperator
-        String message = this.networkOperator.readMessage();
-        if(message == null) {
-            return;
-        }
-
-        String[] commands = message.split(" ");
-        switch (NetworkOperations.getOperation(commands[0])) {
-        case CHARACTER_POSITION:
-            String characterName = commands[1];
-            int row = Integer.parseInt(commands[2]);
-            int col = Integer.parseInt(commands[3]);
-
-            Character character = this.otherCharacters.get(characterName);
-            if(character == null) {
-                character = new Character(characterName, 100, 100, new Position(row, col));
-                character.getSprite().setPosition(0, MAP_HEIGHT - this.character.getSprite().getHeight());
-                this.otherCharacters.put(characterName, character);
-            } else {
-                character.setPosition(new Position(row, col));
-            }
-
-            break;
-        }
     }
 
     private void handleInput(float deltaTime) {
@@ -197,7 +175,7 @@ public class PlayScreen implements Screen {
         }
 
         if(sucUp || sucDown || sucRight || sucLeft) {
-            this.networkOperator.sendMyNewPosition(this.character.getName(), character.getPosition());
+            this.networkOperator.sendMyNewPosition(character.getPosition());
         }
     }
 

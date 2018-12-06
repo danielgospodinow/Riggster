@@ -1,11 +1,13 @@
 package com.danielgospodinow.riggster.server;
 
+import com.danielgospodinow.riggster.server.gameobjects.Player;
 import com.danielgospodinow.riggster.server.gameobjects.Position;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class Server {
 
@@ -18,7 +20,7 @@ public class Server {
 
     private static ServerSocket serverSocket;
     private static ConcurrentHashMap<Integer, ServerThread> clients;
-    private static ConcurrentHashMap<Integer, Position> clientPositions;
+    private static ConcurrentHashMap<Integer, Player> clientCharacters;
 
     public static void main(String[] args) {
         System.out.println(String.format("'Riggster' server starting on port: %d", PORT));
@@ -32,7 +34,7 @@ public class Server {
         }
 
         clients = new ConcurrentHashMap<>();
-        clientPositions = new ConcurrentHashMap<>();
+        clientCharacters = new ConcurrentHashMap<>();
 
         while(true) {
             Socket clientSocket = acceptClient();
@@ -44,7 +46,7 @@ public class Server {
         }
     }
 
-    public static synchronized void broadcastMessage(String message, ServerThread initiator) {
+    public static void broadcastMessage(String message, ServerThread initiator) {
         for(ServerThread serverThread: clients.values()) {
             if (serverThread != initiator) {
                 serverThread.writeMessage(message);
@@ -54,15 +56,29 @@ public class Server {
 
     public static void removeClient(ServerThread serverThread) {
         clients.remove(serverThread.getPort());
+        clientCharacters.remove(serverThread.getPort());
+        clients.values().stream().forEach(otherClient -> otherClient.writeMessage(String.format("E %d", serverThread.getPort())));
         System.out.println(String.format("Client %d dropped out!", serverThread.getPort()));
     }
 
     public static void updatePlayerPosition(int playerID, Position position) {
-        if(clientPositions.get(playerID) == null) {
-            clientPositions.put(playerID, new Position(0 ,0));
+        Player character = clientCharacters.get(playerID);
+        if(character != null) {
+            character.setPosition(position);
         }
+    }
 
-        clientPositions.put(playerID, position);
+    public static void sendOtherPlayers(ServerThread serverThread) {
+        String playersInformation = clientCharacters.values().stream()
+                .filter(player -> player.getPlayerID() != serverThread.getPort())
+                .map(player -> String.format("%d %s %s %d %d", player.getPlayerID(), player.getSprite(), player.getName(), player.getPosition().row, player.getPosition().col))
+                .collect(Collectors.joining("@"));
+
+        serverThread.writeMessage(playersInformation);
+    }
+
+    public static void registerPlayer(int playerID, Player player) {
+        clientCharacters.put(playerID, player);
     }
 
     private static Socket acceptClient() {

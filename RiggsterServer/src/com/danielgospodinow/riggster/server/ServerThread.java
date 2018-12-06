@@ -1,5 +1,6 @@
 package com.danielgospodinow.riggster.server;
 
+import com.danielgospodinow.riggster.server.gameobjects.Player;
 import com.danielgospodinow.riggster.server.gameobjects.Position;
 
 import java.io.*;
@@ -42,14 +43,28 @@ public class ServerThread {
 
                     String[] args = message.split(" ");
                     switch (NetworkOperations.getOperation(args[0])) {
-                    case CHARACTER_POSITION:
-                        String name = args[1];
-                        int row = Integer.parseInt(args[2]);
-                        int col = Integer.parseInt(args[3]);
+                        case CHARACTER_POSITION:
+                            int newrow = Integer.parseInt(args[1]);
+                            int newcol = Integer.parseInt(args[2]);
 
-                        Server.updatePlayerPosition(this.getPort(), new Position(row, col));
-                        Server.broadcastMessage(String.format("P %s %d %d", name, row, col), this);
-                        break;
+                            Server.updatePlayerPosition(this.getPort(), new Position(newrow, newcol));
+                            Server.broadcastMessage(String.format("P %d %d %d", this.getPort(), newrow, newcol), this);
+                            break;
+                        case CHARACTER_INITIALIZATION:
+                            String sprite = args[1];
+                            String characterName = args[2];
+                            int initrow = Integer.parseInt(args[3]);
+                            int initcol = Integer.parseInt(args[4]);
+
+                            Player newPlayer = new Player(this.getPort(), sprite, characterName, new Position(initrow, initcol));
+
+                            Server.registerPlayer(this.getPort(), newPlayer);
+                            Server.broadcastMessage(String.format("O %d %s %s %d %d", this.getPort(), newPlayer.getSprite(), newPlayer.getName(), newPlayer.getPosition().row, newPlayer.getPosition().col), this);
+                            Server.sendOtherPlayers(this);
+                            break;
+                        case CHARACTER_DISPOSE:
+
+                            break;
                     }
                 }
             } catch (IOException e) {

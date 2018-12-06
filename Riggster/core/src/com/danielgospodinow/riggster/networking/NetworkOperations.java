@@ -3,6 +3,9 @@ package com.danielgospodinow.riggster.networking;
 public enum NetworkOperations {
 
     CHARACTER_POSITION("P"),
+    CHARACTER_INITIALIZATION("C"),
+    CHARACTER_DISPOSE("E"),
+    OTHER_CHARACTER_INITIALIZATION("O"),
     UNKNOWN("U");
 
     public static NetworkOperations getOperation(String commandString) {

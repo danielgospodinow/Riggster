@@ -18,27 +18,26 @@ public class Character extends Hero {
     public enum MoveDirection { RIGHT, LEFT, UP, DOWN }
 
     private Sprite sprite;
+    private String spriteName;
     private Position position;
     private Label nameLabel;
 
-    public Character(String name, int health, int mana) {
-        super(name, health, mana);
+    public Character(String sprite, String name, Position position) {
+        super(name, 100, 100);
 
-        this.sprite = new Sprite(new Texture(Gdx.files.internal("character4.png")));
-        this.position = new Position(0,0);
+        this.spriteName = sprite;
+        this.sprite = new Sprite(new Texture(Gdx.files.internal(this.spriteName + ".png")));
         this.nameLabel = new Label(this.getName(), new Label.LabelStyle(new BitmapFont(), Color.GREEN));
-    }
 
-    public Character(String name, int health, int mana, Position position) {
-        super(name, health, mana);
-
-        this.sprite = new Sprite(new Texture(Gdx.files.internal("character3.png")));
-        this.position = position;
-        this.nameLabel = new Label(this.getName(), new Label.LabelStyle(new BitmapFont(), Color.GREEN));
+        this.setPosition(position);
     }
 
     public Sprite getSprite() {
         return this.sprite;
+    }
+
+    public String getSpriteName() {
+        return this.spriteName;
     }
 
     public void draw(Batch batch) {
