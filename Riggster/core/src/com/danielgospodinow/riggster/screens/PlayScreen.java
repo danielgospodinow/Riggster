@@ -139,7 +139,7 @@ public class PlayScreen implements Screen {
         this.game.spriteBatch.setProjectionMatrix(this.hud.getStage().getCamera().combined);
         this.hud.getStage().draw();
 
-        // Fetch other players' statuses
+        // Fetch other players' status
         this.networkOperator.updateOtherPlayers(this.otherCharacters);
 
         // Draw everything
