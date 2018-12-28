@@ -2,12 +2,15 @@ package com.danielgospodinow.riggster.server;
 
 import com.danielgospodinow.riggster.server.gameobjects.Player;
 import com.danielgospodinow.riggster.server.gameobjects.Position;
+import com.danielgospodinow.riggster.server.gameobjects.Treasure;
 
+import java.awt.*;
 import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.RecursiveAction;
 
 public class ServerThread {
 
@@ -44,26 +47,51 @@ public class ServerThread {
                     String[] args = message.split(" ");
                     switch (NetworkOperations.getOperation(args[0])) {
                         case CHARACTER_POSITION:
-                            int newrow = Integer.parseInt(args[1]);
-                            int newcol = Integer.parseInt(args[2]);
+                            int newRow = Integer.parseInt(args[1]);
+                            int newCol = Integer.parseInt(args[2]);
 
-                            Server.updatePlayerPosition(this.getPort(), new Position(newrow, newcol));
-                            Server.broadcastMessage(String.format("P %d %d %d", this.getPort(), newrow, newcol), this);
+                            Server.getInstance().updatePlayerPosition(this.getPort(), new Position(newRow, newCol));
+                            Server.getInstance().broadcastMessage(String.format("%s %d %d %d",
+                                    NetworkOperations.CHARACTER_POSITION.toString(),
+                                    this.getPort(),
+                                    newRow,
+                                    newCol),
+                                    this);
                             break;
+
                         case CHARACTER_INITIALIZATION:
                             String sprite = args[1];
                             String characterName = args[2];
-                            int initrow = Integer.parseInt(args[3]);
-                            int initcol = Integer.parseInt(args[4]);
+                            int initRow = Integer.parseInt(args[3]);
+                            int initCol = Integer.parseInt(args[4]);
 
-                            Player newPlayer = new Player(this.getPort(), sprite, characterName, new Position(initrow, initcol));
+                            Player newPlayer = new Player(this.getPort(), sprite, characterName, new Position(initRow, initCol));
 
-                            Server.registerPlayer(this.getPort(), newPlayer);
-                            Server.broadcastMessage(String.format("O %d %s %s %d %d", this.getPort(), newPlayer.getSprite(), newPlayer.getName(), newPlayer.getPosition().row, newPlayer.getPosition().col), this);
-                            Server.sendOtherPlayers(this);
+                            Server.getInstance().registerPlayer(this.getPort(), newPlayer);
+                            Server.getInstance().broadcastMessage(String.format("%s %d %s %s %d %d",
+                                    NetworkOperations.OTHER_CHARACTER_INITIALIZATION.toString(),
+                                    this.getPort(),
+                                    newPlayer.getSprite(),
+                                    newPlayer.getName(),
+                                    newPlayer.getPosition().row,
+                                    newPlayer.getPosition().col),
+                                    this);
+                            Server.getInstance().sendOtherPlayers(this);
                             break;
-                        case CHARACTER_DISPOSE:
 
+                        case REMOVE_TREASURE:
+                            int treasureX = Integer.parseInt(args[1]);
+                            int treasureY = Integer.parseInt(args[2]);
+                            int treasureWidth = Integer.parseInt(args[3]);
+                            int treasureHeight = Integer.parseInt(args[4]);
+
+                            Server.getInstance().removeTreasure(new Rectangle(treasureX, treasureY, treasureWidth,
+                                    treasureHeight));
+                            Server.getInstance().broadcastMessage(message, this);
+                            break;
+
+                        default:
+                            System.out.println("Unknown command received! It's: " + args[0]);
                             break;
                     }
                 }
@@ -103,7 +131,7 @@ public class ServerThread {
             this.writer.close();
             this.reader.close();
             this.clientSocket.close();
-            Server.removeClient(this);
+            Server.getInstance().removeClient(this);
             this.writer = null;
             this.reader = null;
             this.clientSocket = null;
@@ -114,9 +142,17 @@ public class ServerThread {
 
     private static void sendFilesToClient(Socket client) throws IOException {
         List<File> files = new LinkedList<>();
-        Arrays.stream(Server.FILES).forEach(str -> files.add(new File(str)));
+        Arrays.stream(Server.getInstance().MAP_FILE_EXTENSIONS)
+            .map(fileExtension -> String.format("%s/%s.%s",
+                    Server.getInstance().MAP_DIRECTORY,
+                    Server.getInstance().MAP_NAME,
+                    fileExtension))
+            .forEach(mapFileName -> files.add(new File(mapFileName)));
 
         DataOutputStream dos = new DataOutputStream(client.getOutputStream());
+
+        dos.writeUTF(String.format("%s.%s", Server.getInstance().MAP_NAME, Server.getInstance().MAP_MAIN_EXTENSION));
+        dos.writeByte(Server.getInstance().MAP_FILE_EXTENSIONS.length);
 
         for(File file: files) {
             FileInputStream fis = new FileInputStream(file);

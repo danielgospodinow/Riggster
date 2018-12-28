@@ -1,6 +1,6 @@
 package com.danielgospodinow.riggster.treasure;
 
-public abstract class FightTreasure implements Treasure {
+public abstract class FightTreasure extends Treasure {
 
     private String name;
     private int damage;

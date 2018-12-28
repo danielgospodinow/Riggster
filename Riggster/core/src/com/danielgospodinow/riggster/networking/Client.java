@@ -13,6 +13,8 @@ public class Client {
     private DataOutputStream writer = null;
     private LinkedList<String> receivedMessages = null;
 
+    private String mapFileName;
+
     public Client() {
 
     }
@@ -133,9 +135,17 @@ public class Client {
         return null;
     }
 
+    public String getMapFileName() {
+        return this.mapFileName;
+    }
+
     private void receiveFilesFromServer(Socket serverSocket) throws IOException {
         DataInputStream dis = new DataInputStream(serverSocket.getInputStream());
-        for (int i = 0; i < 3; ++i) {
+
+        this.mapFileName = dis.readUTF();
+        final byte expectedFilesCount = dis.readByte();
+
+        for (int i = 0; i < expectedFilesCount; ++i) {
             String fileName = dis.readUTF();
             long fileSize = dis.readLong();
 

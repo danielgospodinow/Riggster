@@ -10,6 +10,7 @@ public class HealthPotion extends PotionTreasure {
 
     @Override
     public String collect(Hero hero) {
+        this.markAsCollected();
         hero.takeHealing(this.heal());
         return String.format("Health potion found! %d health points added to your hero!", this.heal());
     }

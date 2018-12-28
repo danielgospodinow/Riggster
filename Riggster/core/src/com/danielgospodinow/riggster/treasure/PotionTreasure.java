@@ -1,6 +1,6 @@
 package com.danielgospodinow.riggster.treasure;
 
-public abstract class PotionTreasure implements Treasure {
+public abstract class PotionTreasure extends Treasure {
 
     private int restorePoints;
 

@@ -1,7 +1,7 @@
 package com.danielgospodinow.riggster;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.danielgospodinow.riggster.screens.PlayScreen;
+import com.danielgospodinow.riggster.screens.MainMenuScreen;
 
 public class Game extends com.badlogic.gdx.Game {
 
@@ -10,7 +10,7 @@ public class Game extends com.badlogic.gdx.Game {
     @Override
 	public void create () {
         this.spriteBatch = new SpriteBatch();
-        this.setScreen(new PlayScreen(this));
+		this.setScreen(new MainMenuScreen(this));
 	}
 
 	@Override

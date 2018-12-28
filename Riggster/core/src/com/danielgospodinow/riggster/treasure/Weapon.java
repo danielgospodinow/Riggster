@@ -10,6 +10,7 @@ public class Weapon extends FightTreasure {
 
     @Override
     public String collect(Hero hero) {
+        this.markAsCollected();
         hero.equip(this);
         return String.format("Weapon found! Damage points: %d", this.getDamage());
     }

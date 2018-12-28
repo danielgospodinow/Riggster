@@ -84,6 +84,22 @@ public abstract class Character extends Sprite implements Actor {
         }
     }
 
+    public int getDamage() {
+        if(this.weapon != null && this.spell != null) {
+            if(spell.getManaCost() <= this.getMana()) {
+                return this.weapon.getDamage() > this.spell.getDamage() ? this.weapon.getDamage() : this.spell.getDamage();
+            } else {
+                return this.weapon.getDamage();
+            }
+        } else if(this.weapon != null) {
+            return this.weapon.getDamage();
+        } else if(this.spell != null && spell.getManaCost() <= this.getMana()) {
+            return this.spell.getDamage();
+        } else {
+            return 0;
+        }
+    }
+
     protected void setWeapon(Weapon weapon) {
         this.weapon = weapon;
     }

@@ -12,6 +12,7 @@ public class Spell extends FightTreasure {
     }
 
     public String collect(Hero hero) {
+        this.markAsCollected();
         hero.learn(this);
         return String.format("Spell found! Damage points: %d, Mana cost: %d", this.getDamage(), this.getManaCost());
     }

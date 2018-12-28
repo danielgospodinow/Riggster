@@ -6,6 +6,7 @@ public enum NetworkOperations {
     CHARACTER_INITIALIZATION("C"),
     CHARACTER_DISPOSE("E"),
     OTHER_CHARACTER_INITIALIZATION("O"),
+    REMOVE_TREASURE("T"),
     UNKNOWN("U");
 
     public static NetworkOperations getOperation(String commandString) {

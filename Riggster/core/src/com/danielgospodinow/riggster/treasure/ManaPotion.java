@@ -10,6 +10,7 @@ public class ManaPotion extends PotionTreasure {
 
     @Override
     public String collect(Hero hero) {
+        this.markAsCollected();
         hero.takeMana(this.heal());
         return String.format("Mana potion found! %d mana points added to your hero!", this.heal());
     }
