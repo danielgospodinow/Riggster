@@ -1,0 +1,21 @@
+{
+    "platform": "linux64",
+    "jdk": "/usr/lib/jvm/java-11-openjdk-amd64/",
+    "executable": "Riggster",
+    "classpath": [
+        "ISKA_PIPANE_TOWA.jar"
+    ],
+    "removelibs": [
+        "I_TOWA_SYSHTO.jar"
+    ],
+    "mainclass": "com.danielgospodinow.riggster.desktop.DesktopLauncher",
+    "vmargs": [
+       "Xmx1G"
+    ],
+    "resources": [
+        "src/main/resources",
+        "path/to/other/assets"
+    ],
+    "minimizejre": "soft",
+    "output": "out-mac"
+}

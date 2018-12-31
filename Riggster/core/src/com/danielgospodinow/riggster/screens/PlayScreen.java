@@ -3,9 +3,11 @@ package com.danielgospodinow.riggster.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.MapObjects;
 import com.badlogic.gdx.maps.tiled.TiledMap;
@@ -14,8 +16,9 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.danielgospodinow.riggster.Character;
+import com.danielgospodinow.riggster.actor.Player;
 import com.danielgospodinow.riggster.Game;
+import com.danielgospodinow.riggster.actor.Orc;
 import com.danielgospodinow.riggster.actor.Position;
 import com.danielgospodinow.riggster.networking.Client;
 import com.danielgospodinow.riggster.networking.NetworkOperations;
@@ -54,15 +57,18 @@ public class PlayScreen implements Screen {
     private List<Rectangle> staticObjects = new ArrayList<Rectangle>();
     private HashMap<Rectangle, Treasure> treasureObjects = new HashMap<Rectangle, Treasure>();
 
-    private Character character;
+    private Player character;
     private String characterName;
-    private HashMap<Integer, Character> otherCharacters;
+    private HashMap<Integer, Player> otherCharacters;
+    private List<Orc> enemies;
 
-    public PlayScreen(Game game, String playerName) {
+    private com.badlogic.gdx.scenes.scene2d.ui.Label youDeadLabel;
+
+    public PlayScreen(Game game, String playerName, String ipAdress) {
         this.game = game;
         this.characterName = playerName;
 
-        loadNetwork();
+        loadNetwork(ipAdress);
         loadMap();
         loadCamera();
         loadCharacter();
@@ -71,8 +77,8 @@ public class PlayScreen implements Screen {
         this.networkOperator.startAsyncReading();
     }
 
-    private void loadNetwork() {
-        this.networkOperator = new NetworkOperator(new Client("34.254.231.134", 3000));
+    private void loadNetwork(String ipAdress) {
+        this.networkOperator = new NetworkOperator(new Client(ipAdress, 3000));
     }
 
     private void loadMap() {
@@ -122,8 +128,10 @@ public class PlayScreen implements Screen {
         final int totalSprites = 4;
         int randomNum = RandomNumberGenerator.getRandomInt(1, totalSprites);
 
-        this.character = new Character(String.format("character%d", randomNum), this.characterName, new Position(1, 1),
+        this.character = new Player(String.format("character%d", randomNum), this.characterName, new Position(1, 1),
                 this.staticObjects, this.treasureObjects);
+
+        this.enemies = this.networkOperator.retrieveEnemies(this.character, this.networkOperator);
         this.networkOperator.registerMyCharacter(this.character);
         this.otherCharacters = this.networkOperator.retrieveOtherCharacters();
     }
@@ -160,12 +168,44 @@ public class PlayScreen implements Screen {
         // Handle game network updates
         this.handleGameNetworkUpdates();
 
+        // Clean dead enemies
+        Iterator<Orc> enemiesIterator = this.enemies.iterator();
+        while(enemiesIterator.hasNext()) {
+            Orc currentEnemy = enemiesIterator.next();
+            if(!currentEnemy.isAlive()) {
+                enemiesIterator.remove();
+                //TODO: Notify server that this enemy died
+            }
+        }
+
         // Draw everything
         this.game.spriteBatch.begin();
-        for(Character otherCharacter: this.otherCharacters.values()) {
+        for(Player otherCharacter: this.otherCharacters.values()) {
             otherCharacter.draw(this.game.spriteBatch);
         }
-        this.character.draw(this.game.spriteBatch);
+
+        if(this.character.isAlive()) {
+            this.character.draw(this.game.spriteBatch);
+        } else {
+            if(this.youDeadLabel == null) {
+                this.youDeadLabel = new com.badlogic.gdx.scenes.scene2d.ui.Label("YOU DIED!",
+                        new com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle(new BitmapFont(), Color.RED));
+                this.youDeadLabel.setFontScale(4);
+                this.youDeadLabel.setPosition(Gdx.graphics.getWidth() / 2 - this.youDeadLabel.getWidth() * 4 / 2, Gdx.graphics.getHeight() / 2);
+
+                this.networkOperator.removeMyCharacter();
+            }
+
+            this.youDeadLabel.draw(this.game.spriteBatch, 1);
+        }
+
+        for(Orc enemy: this.enemies) {
+            enemy.update(delta);
+
+            if(enemy.isAlive()) {
+                enemy.draw(this.game.spriteBatch);
+            }
+        }
         this.game.spriteBatch.end();
     }
 
@@ -181,7 +221,7 @@ public class PlayScreen implements Screen {
                 int row = Integer.parseInt(args[2]);
                 int col = Integer.parseInt(args[3]);
 
-                Character character = otherCharacters.get(characterID);
+                Player character = otherCharacters.get(characterID);
                 if(character != null) {
                     character.setPosition(new Position(row, col));
                 }
@@ -194,7 +234,7 @@ public class PlayScreen implements Screen {
                 int initRow = Integer.parseInt(args[4]);
                 int initCol = Integer.parseInt(args[5]);
 
-                otherCharacters.put(initCharacterID, new Character(sprite, name, new Position(initRow, initCol)));
+                otherCharacters.put(initCharacterID, new Player(sprite, name, new Position(initRow, initCol)));
                 break;
 
             case CHARACTER_DISPOSE:
@@ -203,16 +243,45 @@ public class PlayScreen implements Screen {
                 otherCharacters.remove(disposedCharacterID);
                 break;
 
-            case REMOVE_TREASURE:
-                int treasureX = Integer.parseInt(args[1]);
-                int treasureY = Integer.parseInt(args[2]);
-                int treasureWidth = Integer.parseInt(args[3]);
-                int treasureHeight = Integer.parseInt(args[4]);
-                //TODO: FIX y coordinate
-                Rectangle usedTreasure = new Rectangle(treasureX, treasureY, treasureWidth, treasureHeight);
+            case ENEMY_UPDATED:
+                String enemyName = args[1];
+                int enemyRow = Integer.parseInt(args[2]);
+                int enemyCol = Integer.parseInt(args[3]);
+                int health = Integer.parseInt(args[4]);
+                boolean currentlyInUse = args[5].equals("t");
 
-                this.treasureObjects.remove(usedTreasure);
+                for(Orc enemy: this.enemies) {
+                    if(enemy.getName().equals(enemyName)) {
+                        enemy.updateInformation(enemyRow, enemyCol, health, currentlyInUse);
+                        break;
+                    }
+                }
+
                 break;
+
+            case ENEMY_DIED:
+                String diedEnemyName = args[1];
+
+                Iterator<Orc> enemiesIterator = this.enemies.iterator();
+                while(enemiesIterator.hasNext()) {
+                    Orc currentEnemy = enemiesIterator.next();
+                    if(currentEnemy.getName().equals(diedEnemyName)) {
+                        enemiesIterator.remove();
+                        break;
+                    }
+                }
+                break;
+
+//            case REMOVE_TREASURE:
+//                int treasureX = Integer.parseInt(args[1]);
+//                int treasureY = Integer.parseInt(args[2]);
+//                int treasureWidth = Integer.parseInt(args[3]);
+//                int treasureHeight = Integer.parseInt(args[4]);
+//                //TODO: FIX y coordinate
+//                Rectangle usedTreasure = new Rectangle(treasureX, treasureY, treasureWidth, treasureHeight);
+//
+//                this.treasureObjects.remove(usedTreasure);
+//                break;
         }
     }
 
@@ -226,7 +295,7 @@ public class PlayScreen implements Screen {
 
                 Rectangle currentTreasureRectangle = currentTreasureEntry.getKey();
                 currentTreasureRectangle.y = MAP_HEIGHT - currentTreasureRectangle.height - currentTreasureRectangle.y;
-                this.networkOperator.removeTreasure(currentTreasureRectangle);
+//                this.networkOperator.removeTreasure(currentTreasureRectangle);
             }
         }
     }
@@ -238,19 +307,19 @@ public class PlayScreen implements Screen {
         boolean sucLeft = false;
 
         if(Gdx.input.isKeyJustPressed(Input.Keys.W)) {
-            sucUp = this.character.move(Character.MoveDirection.UP);
+            sucUp = this.character.move(Player.MoveDirection.UP);
         }
 
         if(Gdx.input.isKeyJustPressed(Input.Keys.S)) {
-            sucDown = this.character.move(Character.MoveDirection.DOWN);
+            sucDown = this.character.move(Player.MoveDirection.DOWN);
         }
 
         if(Gdx.input.isKeyJustPressed(Input.Keys.D)) {
-            sucRight = this.character.move(Character.MoveDirection.RIGHT);
+            sucRight = this.character.move(Player.MoveDirection.RIGHT);
         }
 
         if(Gdx.input.isKeyJustPressed(Input.Keys.A)) {
-            sucLeft = this.character.move(Character.MoveDirection.LEFT);
+            sucLeft = this.character.move(Player.MoveDirection.LEFT);
         }
 
         if(sucUp || sucDown || sucRight || sucLeft) {

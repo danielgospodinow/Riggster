@@ -1,4 +1,4 @@
-package com.danielgospodinow.riggster;
+package com.danielgospodinow.riggster.actor;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-public class Character extends Hero {
+public class Player extends Hero {
 
     public enum MoveDirection { RIGHT, LEFT, UP, DOWN }
 
@@ -38,8 +38,8 @@ public class Character extends Hero {
     private List<Rectangle> staticObjects;
     private HashMap<Rectangle, Treasure> treasureObjects;
 
-    public Character(String sprite, String name, Position position, List<Rectangle> staticObjects,
-                     HashMap<Rectangle, Treasure> treasureObjects) {
+    public Player(String sprite, String name, Position position, List<Rectangle> staticObjects,
+                  HashMap<Rectangle, Treasure> treasureObjects) {
         super(name, CHARACTER_HEALTH, CHARACTER_MANA);
 
         this.spriteName = sprite;
@@ -57,7 +57,7 @@ public class Character extends Hero {
         this.setPosition(position);
     }
 
-    public Character(String sprite, String name, Position position) {
+    public Player(String sprite, String name, Position position) {
         super(name, CHARACTER_HEALTH, CHARACTER_MANA);
 
         this.spriteName = sprite;
@@ -97,6 +97,10 @@ public class Character extends Hero {
     }
 
     public boolean move(MoveDirection direction) {
+        if(!this.isAlive()) {
+            return false;
+        }
+
         switch (direction) {
             case UP:
                 if(this.position.row - 1 < 0 || isColliding(0, 1)) { return false; }
@@ -138,8 +142,6 @@ public class Character extends Hero {
         // Check treasures collision
         for(Rectangle rectangle: this.treasureObjects.keySet()) {
             if(player.intersects(rectangle)) {
-                System.out.println("Yo, found a treasure!");
-
                 Treasure currentTreasure = this.treasureObjects.get(rectangle);
                 System.out.println(currentTreasure.collect(this) + "\n");
             }

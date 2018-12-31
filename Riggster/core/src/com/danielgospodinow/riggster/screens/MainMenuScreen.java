@@ -3,10 +3,7 @@ package com.danielgospodinow.riggster.screens;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.assets.AssetLoaderParameters;
-import com.badlogic.gdx.assets.loaders.AssetLoader;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.*;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
@@ -19,6 +16,7 @@ public class MainMenuScreen implements Screen {
     private Stage stage;
 
     private TextField nameInput;
+    private TextField ipInput;
     private TextButton connectButton;
 
     public MainMenuScreen(final com.danielgospodinow.riggster.Game game) {
@@ -32,13 +30,16 @@ public class MainMenuScreen implements Screen {
         this.nameInput = new TextField("", skin);
         this.nameInput.setAlignment(Align.center);
 
+        this.ipInput = new TextField("", skin);
+        this.ipInput.setAlignment(Align.center);
+
         this.connectButton = new TextButton("Connect", skin);
         final MainMenuScreen that = this;
         this.connectButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                if(!that.getTextfieldText().equals("")) {
-                    game.setScreen(new PlayScreen(game, that.getTextfieldText()));
+                if(!that.getNameInputText().equals("") && !that.getIpAddressInput().equals("")) {
+                    game.setScreen(new PlayScreen(game, that.getNameInputText(), that.getIpAddressInput()));
                 }
             }
         });
@@ -48,6 +49,10 @@ public class MainMenuScreen implements Screen {
         table.add(new Label("Enter your name:", skin)).padBottom(20);
         table.row();
         table.add(this.nameInput).padBottom(20);
+        table.row();
+        table.add(new Label("Enter server IP address:", skin)).padBottom(20);
+        table.row();
+        table.add(this.ipInput).padBottom(20);
         table.row();
         table.add(this.connectButton);
         this.stage.addActor(table);
@@ -68,8 +73,12 @@ public class MainMenuScreen implements Screen {
         this.stage.act();
     }
 
-    public String getTextfieldText() {
+    public String getNameInputText() {
         return this.nameInput.getText();
+    }
+
+    public String getIpAddressInput() {
+        return this.ipInput.getText();
     }
 
     @Override

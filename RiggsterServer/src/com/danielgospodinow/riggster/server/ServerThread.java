@@ -79,15 +79,38 @@ public class ServerThread {
                             Server.getInstance().sendOtherPlayers(this);
                             break;
 
-                        case REMOVE_TREASURE:
-                            int treasureX = Integer.parseInt(args[1]);
-                            int treasureY = Integer.parseInt(args[2]);
-                            int treasureWidth = Integer.parseInt(args[3]);
-                            int treasureHeight = Integer.parseInt(args[4]);
+//                        case REMOVE_TREASURE:
+//                            int treasureX = Integer.parseInt(args[1]);
+//                            int treasureY = Integer.parseInt(args[2]);
+//                            int treasureWidth = Integer.parseInt(args[3]);
+//                            int treasureHeight = Integer.parseInt(args[4]);
+//
+//                            Server.getInstance().removeTreasure(new Rectangle(treasureX, treasureY, treasureWidth, treasureHeight));
+//                            Server.getInstance().broadcastMessage(message, this);
+//                            break;
 
-                            Server.getInstance().removeTreasure(new Rectangle(treasureX, treasureY, treasureWidth,
-                                    treasureHeight));
-                            Server.getInstance().broadcastMessage(message, this);
+                        case GET_ENEMIES:
+                            Server.getInstance().sendEnemies(this);
+                            break;
+
+                        case CHARACTER_DISPOSE:
+                            Server.getInstance().removeClient(this);
+                            break;
+
+                        case ENEMY_UPDATED:
+                            String enemyName = args[1];
+                            int enemyNewRow = Integer.parseInt(args[2]);
+                            int enemyNewCol = Integer.parseInt(args[3]);
+                            int enemyHealth = Integer.parseInt(args[4]);
+                            String currentlyInUseStr = args[5];
+
+                            Server.getInstance().updateEnemy(this, this.getPort(), enemyName, enemyNewRow, enemyNewCol, enemyHealth, currentlyInUseStr.equals("t"));
+                            break;
+
+                        case ENEMY_DIED:
+                            String diedEnemyName = args[1];
+
+                            Server.getInstance().removeEnemy(this, diedEnemyName);
                             break;
 
                         default:
