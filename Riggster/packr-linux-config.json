@@ -1,0 +1,31 @@
+{
+    "platform": "linux64",
+    "jdk": "/home/danielgospodinow/Downloads/jdk-8u191-linux-x64.zip",
+    "executable": "Riggster",
+    "classpath": [
+        "out/artifacts/Riggster_jar/desktop_main.jar",
+        "out/artifacts/Riggster_jar/gdx-1.9.8.jar",
+        "out/artifacts/Riggster_jar/gdx-backend-lwjgl-1.9.8.jar",
+        "out/artifacts/Riggster_jar/gdx-box2d-1.9.8.jar",
+        "out/artifacts/Riggster_jar/gdx-box2d-platform-1.9.8-natives-desktop.jar",
+        "out/artifacts/Riggster_jar/gdx-platform-1.9.8-natives-desktop.jar",
+        "out/artifacts/Riggster_jar/jinput-2.0.5.jar",
+        "out/artifacts/Riggster_jar/jinput-platform-2.0.5-natives-linux.jar",
+        "out/artifacts/Riggster_jar/jinput-platform-2.0.5-natives-osx.jar",
+        "out/artifacts/Riggster_jar/jinput-platform-2.0.5-natives-windows.jar",
+        "out/artifacts/Riggster_jar/jlayer-1.0.1-gdx.jar",
+        "out/artifacts/Riggster_jar/jorbis-0.0.17.jar",
+        "out/artifacts/Riggster_jar/jutils-1.0.0.jar",
+        "out/artifacts/Riggster_jar/lwjgl-2.9.2.jar",
+        "out/artifacts/Riggster_jar/lwjgl-platform-2.9.2-natives-linux.jar",
+        "out/artifacts/Riggster_jar/lwjgl-platform-2.9.2-natives-osx.jar",
+        "out/artifacts/Riggster_jar/lwjgl-platform-2.9.2-natives-windows.jar",
+        "out/artifacts/Riggster_jar/lwjgl_util-2.9.2.jar"
+    ],
+    "mainclass": "com.danielgospodinow.riggster.desktop.DesktopLauncher",
+    "resources": [
+        "core/assets/"
+    ],
+    "minimizejre": "soft",
+    "output": "out-linux"
+}
