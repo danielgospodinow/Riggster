@@ -10,8 +10,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public class Server {
@@ -21,92 +20,129 @@ public class Server {
         return instance;
     }
 
-    public final String MAP_DIRECTORY = "resources";
-    public final String MAP_NAME = "map";
-    public final String MAP_MAIN_EXTENSION = "tmx";
-    public final String[] MAP_FILE_EXTENSIONS = {
+    public static final String MAP_DIRECTORY = "resources";
+    public static final String MAP_NAME = "map";
+    public static final String MAP_MAIN_EXTENSION = "tmx";
+    public static final String[] MAP_FILE_EXTENSIONS = {
         "tmx",
         "tsx",
         "png"
     };
 
+    private static final int MAX_CLIENT_THREADS = 5;
+    private static final ThreadPoolExecutor executor =
+            (ThreadPoolExecutor) Executors.newFixedThreadPool(MAX_CLIENT_THREADS);
+
     private ServerSocket serverSocket;
 
-    //TODO: Move those to a database
-    private ConcurrentHashMap<Integer, ServerThread> clients;
+    private ConcurrentHashMap<Integer, ServerRunnable> clients;
     private ConcurrentHashMap<Integer, Player> clientCharacters;
     private ConcurrentLinkedQueue<Rectangle> treasures;
     private ConcurrentLinkedQueue<Enemy> enemies;
 
     private Server() {
-
+        this.clients = new ConcurrentHashMap<>();
+        this.clientCharacters = new ConcurrentHashMap<>();
+        this.treasures = new ConcurrentLinkedQueue<>(MapLoader.loadTreasures());
+        this.enemies = new ConcurrentLinkedQueue<>(MapLoader.loadEnemies());
     }
 
     public void startServer(int port) {
         try {
-            serverSocket = new ServerSocket(port);
+            this.serverSocket = new ServerSocket(port);
         } catch (IOException e) {
             System.out.println("Failed to initialize server!");
             e.printStackTrace();
             System.exit(1);
         }
 
-        clients = new ConcurrentHashMap<>();
-        clientCharacters = new ConcurrentHashMap<>();
-        treasures = new ConcurrentLinkedQueue<>(MapLoader.loadTreasures());
-        enemies = new ConcurrentLinkedQueue<>(MapLoader.loadEnemies());
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("Performing shutdown cleanup...");
+            executor.shutdown();
+            while (true) {
+                try {
+                    System.out.println("Waiting for the service to terminate...");
+                    if (executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                        break;
+                    }
+                } catch (InterruptedException e) {
+                    System.out.println("System failed to cleanup");
+                }
+            }
+            System.out.println("Done cleaning");
+        }));
 
         while(true) {
             Socket clientSocket = acceptClient();
             if(clientSocket == null) { continue; }
 
+            if(executor.getActiveCount() >= MAX_CLIENT_THREADS) {
+                try {
+                    clientSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                continue;
+            }
+
             System.out.println("Client connected! Port: " + clientSocket.getPort());
-            ServerThread newClientThread = new ServerThread(clientSocket);
-            clients.put(clientSocket.getPort(), newClientThread);
+            ServerRunnable serverThread = new ServerRunnable(clientSocket);
+            this.clients.put(clientSocket.getPort(), serverThread);
+
+            executor.execute(serverThread);
         }
     }
 
-    public void broadcastMessage(String message, ServerThread initiator) {
-        for(ServerThread serverThread: clients.values()) {
+    public void broadcastMessage(String message, ServerRunnable initiator) {
+        for(ServerRunnable serverThread: this.clients.values()) {
             if (serverThread != initiator) {
                 serverThread.writeMessage(message);
             }
         }
     }
 
-    public void removeClient(ServerThread serverThread) {
-        clients.remove(serverThread.getPort());
-        clientCharacters.remove(serverThread.getPort());
-        clients.values().forEach(otherClient -> otherClient.writeMessage(String.format("E %d", serverThread.getPort())));
+    public void removeClient(ServerRunnable serverThread) {
+        this.clients.remove(serverThread.getPort());
+        this.clientCharacters.remove(serverThread.getPort());
+        this.clients.values().forEach(otherClient -> otherClient.writeMessage(String.format("E %d",
+                serverThread.getPort())));
         System.out.println(String.format("Client %d dropped out!", serverThread.getPort()));
     }
 
     public void updatePlayerPosition(int playerID, Position position) {
-        Player character = clientCharacters.get(playerID);
+        Player character = this.clientCharacters.get(playerID);
         if(character != null) {
             character.setPosition(position);
         }
     }
 
-    public void sendOtherPlayers(ServerThread serverThread) {
-        String playersInformation = clientCharacters.values().stream()
+    public void sendOtherPlayers(ServerRunnable serverThread) {
+        String playersInformation = this.clientCharacters.values().stream()
                 .filter(player -> player.getPlayerID() != serverThread.getPort())
-                .map(player -> String.format("%d %s %s %d %d", player.getPlayerID(), player.getSprite(), player.getName(), player.getPosition().row, player.getPosition().col))
+                .map(player -> String.format("%d %s %s %d %d",
+                        player.getPlayerID(),
+                        player.getSprite(),
+                        player.getName(),
+                        player.getPosition().row,
+                        player.getPosition().col))
                 .collect(Collectors.joining("@"));
 
         serverThread.writeMessage(playersInformation);
     }
 
-    public void sendEnemies(ServerThread serverThread) {
-        String enemiesInformation = enemies.stream()
+    public void sendEnemies(ServerRunnable serverThread) {
+        String enemiesInformation = this.enemies.stream()
                 .map(Enemy::toString)
                 .collect(Collectors.joining("@"));
 
         serverThread.writeMessage(enemiesInformation);
     }
 
-    public void updateEnemy(ServerThread initiator, int clientId, String name, int row, int col, int health, boolean currentlyInUse) {
-        Enemy currentEnemy = this.enemies.stream().filter(enemy -> String.valueOf(enemy.getName()).equals(name)).findFirst().orElseThrow();
+    public void updateEnemy(ServerRunnable initiator, int clientId, String name, int row, int col, int health, boolean currentlyInUse) {
+        Enemy currentEnemy = this.enemies.stream()
+            .filter(enemy -> String.valueOf(enemy.getName()).equals(name))
+            .findFirst()
+            .orElseThrow();
 
         if(clientId == currentEnemy.getClientOwner()) {
             currentEnemy.updateInformation(clientId, row, col, health, currentlyInUse);
@@ -125,7 +161,7 @@ public class Server {
                 currentEnemy.isCurrentlyInUse() ? "t" : "f"), initiator);
     }
 
-    public void removeEnemy(ServerThread initiator, String diedEnemyName) {
+    public void removeEnemy(ServerRunnable initiator, String diedEnemyName) {
         Iterator<Enemy> enemyIterator = this.enemies.iterator();
         while(enemyIterator.hasNext()) {
             Enemy currentEnemy = enemyIterator.next();
@@ -151,7 +187,7 @@ public class Server {
         Socket socket = null;
 
         try {
-            socket = serverSocket.accept();
+            socket = this.serverSocket.accept();
         } catch (IOException e) {
             System.out.println("Server failed to initialize a client!");
             e.printStackTrace();

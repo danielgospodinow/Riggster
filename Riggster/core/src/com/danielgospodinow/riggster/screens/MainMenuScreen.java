@@ -8,6 +8,9 @@ import com.badlogic.gdx.scenes.scene2d.*;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
+import com.danielgospodinow.riggster.networking.Client;
+
+import java.io.IOException;
 
 public class MainMenuScreen implements Screen {
 
@@ -39,7 +42,18 @@ public class MainMenuScreen implements Screen {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 if(!that.getNameInputText().equals("") && !that.getIpAddressInput().equals("")) {
-                    game.setScreen(new PlayScreen(game, that.getNameInputText(), that.getIpAddressInput()));
+                    String playerName = that.getNameInputText();
+                    String ipAddress = that.getIpAddressInput();
+
+                    Client client = new Client();
+                    try {
+                        client.connect(ipAddress);
+                    } catch (IOException e) {
+                        System.out.println("Failed to connect to the server!");
+                        return;
+                    }
+
+                    game.setScreen(new PlayScreen(game, playerName, client));
                 }
             }
         });

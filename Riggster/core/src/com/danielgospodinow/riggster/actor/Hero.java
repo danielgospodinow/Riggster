@@ -3,7 +3,7 @@ package com.danielgospodinow.riggster.actor;
 import com.danielgospodinow.riggster.treasure.Spell;
 import com.danielgospodinow.riggster.treasure.Weapon;
 
-public class Hero extends Character {
+public abstract class Hero extends Character {
 
     private final int INITIAL_HEALTH;
     private final int INITIAL_MANA;

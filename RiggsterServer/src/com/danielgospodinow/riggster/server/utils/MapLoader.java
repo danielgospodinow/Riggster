@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 public class MapLoader {
 
     public static List<Rectangle> loadTreasures() {
-        String mapFilepath = String.format("%s/%s.%s", Server.getInstance().MAP_DIRECTORY, Server.getInstance().MAP_NAME, Server.getInstance().MAP_MAIN_EXTENSION);
+        String mapFilepath = String.format("%s/%s.%s", Server.MAP_DIRECTORY, Server.MAP_NAME, Server.MAP_MAIN_EXTENSION);
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(new File(mapFilepath))))) {
             LinkedList<Rectangle> treasures = new LinkedList<>();
@@ -55,8 +55,8 @@ public class MapLoader {
     }
 
     public static List<Enemy> loadEnemies() {
-        String mapFilepath = String.format("%s/%s_enemies.txt", Server.getInstance().MAP_DIRECTORY,
-                Server.getInstance().MAP_NAME);
+        String mapFilepath = String.format("%s/%s_enemies.txt", Server.MAP_DIRECTORY,
+                Server.MAP_NAME);
         try(BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(new File(mapFilepath))))) {
             List<Enemy> enemies = new ArrayList<>();
 

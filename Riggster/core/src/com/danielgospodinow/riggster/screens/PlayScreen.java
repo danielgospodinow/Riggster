@@ -64,11 +64,11 @@ public class PlayScreen implements Screen {
 
     private com.badlogic.gdx.scenes.scene2d.ui.Label youDeadLabel;
 
-    public PlayScreen(Game game, String playerName, String ipAdress) {
+    public PlayScreen(Game game, String playerName, Client client) {
         this.game = game;
         this.characterName = playerName;
 
-        loadNetwork(ipAdress);
+        loadNetwork(client);
         loadMap();
         loadCamera();
         loadCharacter();
@@ -77,8 +77,8 @@ public class PlayScreen implements Screen {
         this.networkOperator.startAsyncReading();
     }
 
-    private void loadNetwork(String ipAdress) {
-        this.networkOperator = new NetworkOperator(new Client(ipAdress, 3000));
+    private void loadNetwork(Client client) {
+        this.networkOperator = new NetworkOperator(client);
     }
 
     private void loadMap() {

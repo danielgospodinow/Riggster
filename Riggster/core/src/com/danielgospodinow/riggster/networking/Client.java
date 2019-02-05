@@ -8,6 +8,8 @@ import java.util.LinkedList;
 
 public class Client {
 
+    private static final int PORT = 3000;
+
     private Socket clientSocket = null;
     private DataInputStream reader = null;
     private DataOutputStream writer = null;
@@ -19,13 +21,9 @@ public class Client {
 
     }
 
-    public Client(String ip, int port) {
-        this.connect(ip, port);
-    }
-
-    public void connect(String ip, int port) {
+    public void connect(String ip) throws IOException {
         this.clientSocket = new Socket();
-        SocketAddress socketAddress = new InetSocketAddress(ip, port);
+        SocketAddress socketAddress = new InetSocketAddress(ip, PORT);
 
         try {
             this.clientSocket.connect(socketAddress);
@@ -42,12 +40,7 @@ public class Client {
             System.exit(1);
         }
 
-        try {
-            this.receiveFilesFromServer(clientSocket);
-        } catch (IOException e) {
-            this.printError("Failed to fetch files from server!", e);
-            System.exit(1);
-        }
+        this.receiveFilesFromServer(clientSocket);
 
         this.receivedMessages = new LinkedList<String>();
     }
