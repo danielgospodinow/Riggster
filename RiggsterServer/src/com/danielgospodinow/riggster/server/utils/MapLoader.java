@@ -48,8 +48,7 @@ public class MapLoader {
 
             return treasures;
         } catch (IOException e) {
-            System.out.println("Failed to load treasures from map!");
-            e.printStackTrace();
+            Logger.getInstance().logError("Failed to load treasures from map!", e);
             return null;
         }
     }
@@ -75,8 +74,7 @@ public class MapLoader {
 
             return enemies;
         } catch (IOException e) {
-            System.out.println("Failed to load enemies from map!");
-            e.printStackTrace();
+            Logger.getInstance().logError("Failed to load enemies from map!", e);
             return null;
         }
     }

@@ -2,9 +2,11 @@ package com.danielgospodinow.riggster.server;
 
 import com.danielgospodinow.riggster.server.gameobjects.Player;
 import com.danielgospodinow.riggster.server.gameobjects.Position;
+import com.danielgospodinow.riggster.server.utils.Logger;
 
 import java.io.*;
 import java.net.Socket;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,8 +24,7 @@ public class ServerRunnable implements Runnable {
             this.reader = new DataInputStream(this.clientSocket.getInputStream());
             this.writer = new DataOutputStream(this.clientSocket.getOutputStream());
         } catch (IOException e) {
-            System.out.println("Server failed to initialize reader/writer for client thread!");
-            e.printStackTrace();
+            Logger.getInstance().logError("Server failed to initialize reader/writer for client thread!", e);
             System.exit(1);
         }
 
@@ -31,8 +32,7 @@ public class ServerRunnable implements Runnable {
             sendFilesToClient(this.clientSocket);
             System.out.println("Files send successfully!");
         } catch (IOException e) {
-            System.out.println("Server failed to deliver files to client!");
-            e.printStackTrace();
+            Logger.getInstance().logError("Server failed to deliver files to client!", e);
         }
     }
 
@@ -41,8 +41,7 @@ public class ServerRunnable implements Runnable {
             this.writer.writeUTF(message);
             this.writer.flush();
         } catch (IOException e) {
-            System.out.println("Server failed to send message to client!");
-            e.printStackTrace();
+            Logger.getInstance().logError("Server failed to send message to client!", e);
             this.close();
         }
     }
@@ -69,7 +68,7 @@ public class ServerRunnable implements Runnable {
             this.reader = null;
             this.clientSocket = null;
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.getInstance().logError("Failed to close server runnable resources!", e);
         }
     }
 
@@ -182,8 +181,7 @@ public class ServerRunnable implements Runnable {
                 }
             }
         } catch (IOException e) {
-            System.out.println("Server failed to read from client!");
-            e.printStackTrace();
+            Logger.getInstance().logError("Server failed to read from client!", e);
             this.close();
         }
     }

@@ -3,6 +3,7 @@ package com.danielgospodinow.riggster.server;
 import com.danielgospodinow.riggster.server.gameobjects.Enemy;
 import com.danielgospodinow.riggster.server.gameobjects.Player;
 import com.danielgospodinow.riggster.server.gameobjects.Position;
+import com.danielgospodinow.riggster.server.utils.Logger;
 import com.danielgospodinow.riggster.server.utils.MapLoader;
 
 import java.awt.*;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 public class Server {
 
     private static final Server instance = new Server();
+
     public static Server getInstance() {
         return instance;
     }
@@ -24,9 +26,9 @@ public class Server {
     public static final String MAP_NAME = "map";
     public static final String MAP_MAIN_EXTENSION = "tmx";
     public static final String[] MAP_FILE_EXTENSIONS = {
-        "tmx",
-        "tsx",
-        "png"
+            "tmx",
+            "tsx",
+            "png"
     };
 
     private static final int MAX_CLIENT_THREADS = 5;
@@ -51,14 +53,15 @@ public class Server {
         try {
             this.serverSocket = new ServerSocket(port);
         } catch (IOException e) {
-            System.out.println("Failed to initialize server!");
-            e.printStackTrace();
+            Logger.getInstance().logError("Failed to initialize server!", e);
             System.exit(1);
         }
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("Performing shutdown cleanup...");
+
             executor.shutdown();
+
             while (true) {
                 try {
                     System.out.println("Waiting for the service to terminate...");
@@ -72,15 +75,17 @@ public class Server {
             System.out.println("Done cleaning");
         }));
 
-        while(true) {
+        while (true) {
             Socket clientSocket = acceptClient();
-            if(clientSocket == null) { continue; }
+            if (clientSocket == null) {
+                continue;
+            }
 
-            if(executor.getActiveCount() >= MAX_CLIENT_THREADS) {
+            if (executor.getActiveCount() >= MAX_CLIENT_THREADS) {
                 try {
                     clientSocket.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Logger.getInstance().logError("Failed to stop executor!", e);
                 }
                 continue;
             }
@@ -94,7 +99,7 @@ public class Server {
     }
 
     public void broadcastMessage(String message, ServerRunnable initiator) {
-        for(ServerRunnable serverThread: this.clients.values()) {
+        for (ServerRunnable serverThread : this.clients.values()) {
             if (serverThread != initiator) {
                 serverThread.writeMessage(message);
             }
@@ -111,7 +116,7 @@ public class Server {
 
     public void updatePlayerPosition(int playerID, Position position) {
         Player character = this.clientCharacters.get(playerID);
-        if(character != null) {
+        if (character != null) {
             character.setPosition(position);
         }
     }
@@ -138,16 +143,17 @@ public class Server {
         serverThread.writeMessage(enemiesInformation);
     }
 
-    public void updateEnemy(ServerRunnable initiator, int clientId, String name, int row, int col, int health, boolean currentlyInUse) {
+    public void updateEnemy(ServerRunnable initiator, int clientId, String name, int row, int col, int health,
+                            boolean currentlyInUse) {
         Enemy currentEnemy = this.enemies.stream()
-            .filter(enemy -> String.valueOf(enemy.getName()).equals(name))
-            .findFirst()
-            .orElseThrow();
+                .filter(enemy -> String.valueOf(enemy.getName()).equals(name))
+                .findFirst()
+                .orElseThrow();
 
-        if(clientId == currentEnemy.getClientOwner()) {
+        if (clientId == currentEnemy.getClientOwner()) {
             currentEnemy.updateInformation(clientId, row, col, health, currentlyInUse);
         } else {
-            if(!currentEnemy.isCurrentlyInUse()) {
+            if (!currentEnemy.isCurrentlyInUse()) {
                 currentEnemy.updateInformation(clientId, row, col, health, currentlyInUse);
             }
         }
@@ -163,9 +169,9 @@ public class Server {
 
     public void removeEnemy(ServerRunnable initiator, String diedEnemyName) {
         Iterator<Enemy> enemyIterator = this.enemies.iterator();
-        while(enemyIterator.hasNext()) {
+        while (enemyIterator.hasNext()) {
             Enemy currentEnemy = enemyIterator.next();
-            if(String.valueOf(currentEnemy.getName()).equals(diedEnemyName)) {
+            if (String.valueOf(currentEnemy.getName()).equals(diedEnemyName)) {
                 enemyIterator.remove();
                 this.broadcastMessage(String.format("%s %s",
                         NetworkOperations.ENEMY_DIED.toString(),
@@ -189,8 +195,7 @@ public class Server {
         try {
             socket = this.serverSocket.accept();
         } catch (IOException e) {
-            System.out.println("Server failed to initialize a client!");
-            e.printStackTrace();
+            Logger.getInstance().logError("Server failed to initialize a client!", e);
         }
 
         return socket;
