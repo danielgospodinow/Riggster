@@ -4,8 +4,8 @@ import com.danielgospodinow.riggster.actor.Hero;
 
 public class Weapon extends FightTreasure {
 
-    public Weapon(String name, int damage) {
-        super(name, damage);
+    public Weapon(String name, int damage, int id) {
+        super(name, damage, id);
     }
 
     @Override

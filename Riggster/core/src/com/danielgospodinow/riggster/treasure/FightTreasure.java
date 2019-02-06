@@ -5,7 +5,8 @@ public abstract class FightTreasure extends Treasure {
     private String name;
     private int damage;
 
-    public FightTreasure(String name, int damage) {
+    public FightTreasure(String name, int damage, int id) {
+        super(id);
         this.name = name;
         this.damage = damage;
     }

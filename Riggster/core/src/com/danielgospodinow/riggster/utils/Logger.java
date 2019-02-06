@@ -1,4 +1,4 @@
-package com.danielgospodinow.riggster.server.utils;
+package com.danielgospodinow.riggster.utils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -10,18 +10,18 @@ import java.time.format.DateTimeFormatter;
 public class Logger {
 
     private static final Logger instance = new Logger();
+
     public static Logger getInstance() {
         return instance;
     }
 
-    private static final String LOG_FILE_NAME = "logs.txt";
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 
     private PrintWriter writer;
 
     private Logger() {
         try {
-            this.writer = new PrintWriter(new FileOutputStream(new File(LOG_FILE_NAME), true));
+            this.writer = new PrintWriter(new FileOutputStream(new File("logs.txt"), true));
         } catch (FileNotFoundException e) {
             System.out.println("Failed to initialize log writer!");
             e.printStackTrace();

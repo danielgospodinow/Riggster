@@ -3,13 +3,11 @@ package com.danielgospodinow.riggster.server;
 import com.danielgospodinow.riggster.server.gameobjects.Player;
 import com.danielgospodinow.riggster.server.gameobjects.Position;
 import com.danielgospodinow.riggster.server.utils.Logger;
+import com.danielgospodinow.riggster.server.utils.NetworkOperations;
 
 import java.io.*;
 import java.net.Socket;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class ServerRunnable implements Runnable {
 
@@ -30,9 +28,14 @@ public class ServerRunnable implements Runnable {
 
         try {
             sendFilesToClient(this.clientSocket);
-            System.out.println("Files send successfully!");
         } catch (IOException e) {
             Logger.getInstance().logError("Server failed to deliver files to client!", e);
+        }
+
+        try {
+            sendTreasuresToClient(this.clientSocket);
+        } catch (IOException e) {
+            Logger.getInstance().logError("Server failed to deliver remaining treasures to client!", e);
         }
     }
 
@@ -69,6 +72,23 @@ public class ServerRunnable implements Runnable {
             this.clientSocket = null;
         } catch (IOException e) {
             Logger.getInstance().logError("Failed to close server runnable resources!", e);
+        }
+    }
+
+    private static void sendTreasuresToClient(Socket client) throws IOException {
+        DataOutputStream dos = new DataOutputStream(client.getOutputStream());
+
+        StringBuilder sb = new StringBuilder();
+        Server.getInstance().getTreasureIds().forEach(integer -> {
+            sb.append(integer);
+            sb.append("@");
+        });
+
+        if(sb.length() > 0) {
+            sb.deleteCharAt(sb.length() - 1);
+            dos.writeUTF(sb.toString());
+        } else {
+            dos.writeUTF("");
         }
     }
 
@@ -141,15 +161,12 @@ public class ServerRunnable implements Runnable {
                         Server.getInstance().sendOtherPlayers(this);
                         break;
 
-//                        case REMOVE_TREASURE:
-//                            int treasureX = Integer.parseInt(args[1]);
-//                            int treasureY = Integer.parseInt(args[2]);
-//                            int treasureWidth = Integer.parseInt(args[3]);
-//                            int treasureHeight = Integer.parseInt(args[4]);
-//
-//                            Server.getInstance().removeTreasure(new Rectangle(treasureX, treasureY, treasureWidth, treasureHeight));
-//                            Server.getInstance().broadcastMessage(message, this);
-//                            break;
+                    case REMOVE_TREASURE:
+                        int treasureId = Integer.parseInt(args[1]);
+
+                        Server.getInstance().removeTreasure(treasureId);
+                        Server.getInstance().broadcastMessage(message, this);
+                        break;
 
                     case GET_ENEMIES:
                         Server.getInstance().sendEnemies(this);

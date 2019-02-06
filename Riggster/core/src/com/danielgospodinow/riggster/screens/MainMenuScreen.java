@@ -59,7 +59,7 @@ public class MainMenuScreen implements Screen {
         });
 
         Table table = new Table();
-        table.setPosition(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight()/ 2);
+        table.setPosition((float) Gdx.graphics.getWidth() / 2, (float) Gdx.graphics.getHeight()/ 2);
         table.add(new Label("Enter your name:", skin)).padBottom(20);
         table.row();
         table.add(this.nameInput).padBottom(20);

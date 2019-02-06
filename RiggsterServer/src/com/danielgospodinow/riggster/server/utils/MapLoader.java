@@ -14,11 +14,11 @@ import java.util.stream.Collectors;
 
 public class MapLoader {
 
-    public static List<Rectangle> loadTreasures() {
+    public static List<Integer> loadTreasures() {
         String mapFilepath = String.format("%s/%s.%s", Server.MAP_DIRECTORY, Server.MAP_NAME, Server.MAP_MAIN_EXTENSION);
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(new File(mapFilepath))))) {
-            LinkedList<Rectangle> treasures = new LinkedList<>();
+            LinkedList<Integer> treasures = new LinkedList<>();
             boolean reachedTreasures = false;
             String line;
             while ((line = reader.readLine()) != null) {
@@ -35,14 +35,9 @@ public class MapLoader {
                     List<String> values = Arrays.stream(line.split("[^0-9.]"))
                             .filter(value -> !value.equals(""))
                             .collect(Collectors.toList());
-                    values.remove(0);
 
-                    int x = Math.round(Float.parseFloat(values.remove(0)));
-                    int y = Math.round(Float.parseFloat(values.remove(0)));
-                    int width = Math.round(Float.parseFloat(values.remove(0)));
-                    int height = Math.round(Float.parseFloat(values.remove(0)));
-
-                    treasures.push(new Rectangle(x, y, width, height));
+                    int id = Integer.parseInt(values.remove(0));
+                    treasures.push(id);
                 }
             }
 

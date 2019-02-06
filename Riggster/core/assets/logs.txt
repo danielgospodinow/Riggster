@@ -1,0 +1,65 @@
+[06-02-2019 15:40]: Client failed to connect with the server!
+[06-02-2019 15:42]: Failed to retrieve remaining treasures information!
+java.io.EOFException
+	at java.io.DataInputStream.readUnsignedShort(DataInputStream.java:340)
+	at java.io.DataInputStream.readUTF(DataInputStream.java:589)
+	at java.io.DataInputStream.readUTF(DataInputStream.java:564)
+	at com.danielgospodinow.riggster.networking.NetworkOperator.retrieveRemainingTreasures(NetworkOperator.java:96)
+	at com.danielgospodinow.riggster.screens.PlayScreen.loadMap(PlayScreen.java:115)
+	at com.danielgospodinow.riggster.screens.PlayScreen.<init>(PlayScreen.java:72)
+	at com.danielgospodinow.riggster.screens.MainMenuScreen$1.clicked(MainMenuScreen.java:56)
+	at com.badlogic.gdx.scenes.scene2d.utils.ClickListener.touchUp(ClickListener.java:89)
+	at com.badlogic.gdx.scenes.scene2d.InputListener.handle(InputListener.java:59)
+	at com.badlogic.gdx.scenes.scene2d.Stage.touchUp(Stage.java:351)
+	at com.badlogic.gdx.backends.lwjgl.LwjglInput.processEvents(LwjglInput.java:332)
+	at com.badlogic.gdx.backends.lwjgl.LwjglApplication.mainLoop(LwjglApplication.java:217)
+	at com.badlogic.gdx.backends.lwjgl.LwjglApplication$1.run(LwjglApplication.java:126)
+[06-02-2019 15:42]: Failed to retrieve enemies' information!
+java.io.EOFException
+	at java.io.DataInputStream.readUnsignedShort(DataInputStream.java:340)
+	at java.io.DataInputStream.readUTF(DataInputStream.java:589)
+	at java.io.DataInputStream.readUTF(DataInputStream.java:564)
+	at com.danielgospodinow.riggster.networking.NetworkOperator.retrieveEnemies(NetworkOperator.java:42)
+	at com.danielgospodinow.riggster.screens.PlayScreen.loadCharacter(PlayScreen.java:135)
+	at com.danielgospodinow.riggster.screens.PlayScreen.<init>(PlayScreen.java:74)
+	at com.danielgospodinow.riggster.screens.MainMenuScreen$1.clicked(MainMenuScreen.java:56)
+	at com.badlogic.gdx.scenes.scene2d.utils.ClickListener.touchUp(ClickListener.java:89)
+	at com.badlogic.gdx.scenes.scene2d.InputListener.handle(InputListener.java:59)
+	at com.badlogic.gdx.scenes.scene2d.Stage.touchUp(Stage.java:351)
+	at com.badlogic.gdx.backends.lwjgl.LwjglInput.processEvents(LwjglInput.java:332)
+	at com.badlogic.gdx.backends.lwjgl.LwjglApplication.mainLoop(LwjglApplication.java:217)
+	at com.badlogic.gdx.backends.lwjgl.LwjglApplication$1.run(LwjglApplication.java:126)
+[06-02-2019 15:42]: Client failed to send message to socket!
+[06-02-2019 15:50]: Failed to retrieve enemies' information!
+java.io.EOFException
+	at java.io.DataInputStream.readUnsignedShort(DataInputStream.java:340)
+	at java.io.DataInputStream.readUTF(DataInputStream.java:589)
+	at java.io.DataInputStream.readUTF(DataInputStream.java:564)
+	at com.danielgospodinow.riggster.networking.NetworkOperator.retrieveEnemies(NetworkOperator.java:42)
+	at com.danielgospodinow.riggster.screens.PlayScreen.loadCharacter(PlayScreen.java:135)
+	at com.danielgospodinow.riggster.screens.PlayScreen.<init>(PlayScreen.java:74)
+	at com.danielgospodinow.riggster.screens.MainMenuScreen$1.clicked(MainMenuScreen.java:56)
+	at com.badlogic.gdx.scenes.scene2d.utils.ClickListener.touchUp(ClickListener.java:89)
+	at com.badlogic.gdx.scenes.scene2d.InputListener.handle(InputListener.java:59)
+	at com.badlogic.gdx.scenes.scene2d.Stage.touchUp(Stage.java:351)
+	at com.badlogic.gdx.backends.lwjgl.LwjglInput.processEvents(LwjglInput.java:332)
+	at com.badlogic.gdx.backends.lwjgl.LwjglApplication.mainLoop(LwjglApplication.java:217)
+	at com.badlogic.gdx.backends.lwjgl.LwjglApplication$1.run(LwjglApplication.java:126)
+[06-02-2019 15:50]: Client failed to send message to socket!
+[06-02-2019 15:59]: Failed to retrieve enemies' information!
+java.io.EOFException
+	at java.io.DataInputStream.readUnsignedShort(DataInputStream.java:340)
+	at java.io.DataInputStream.readUTF(DataInputStream.java:589)
+	at java.io.DataInputStream.readUTF(DataInputStream.java:564)
+	at com.danielgospodinow.riggster.networking.NetworkOperator.retrieveEnemies(NetworkOperator.java:42)
+	at com.danielgospodinow.riggster.screens.PlayScreen.loadCharacter(PlayScreen.java:135)
+	at com.danielgospodinow.riggster.screens.PlayScreen.<init>(PlayScreen.java:74)
+	at com.danielgospodinow.riggster.screens.MainMenuScreen$1.clicked(MainMenuScreen.java:56)
+	at com.badlogic.gdx.scenes.scene2d.utils.ClickListener.touchUp(ClickListener.java:89)
+	at com.badlogic.gdx.scenes.scene2d.InputListener.handle(InputListener.java:59)
+	at com.badlogic.gdx.scenes.scene2d.Stage.touchUp(Stage.java:351)
+	at com.badlogic.gdx.backends.lwjgl.LwjglInput.processEvents(LwjglInput.java:332)
+	at com.badlogic.gdx.backends.lwjgl.LwjglApplication.mainLoop(LwjglApplication.java:217)
+	at com.badlogic.gdx.backends.lwjgl.LwjglApplication$1.run(LwjglApplication.java:126)
+[06-02-2019 15:59]: Client failed to send message to socket!
+[06-02-2019 16:50]: Client failed to connect with the server!

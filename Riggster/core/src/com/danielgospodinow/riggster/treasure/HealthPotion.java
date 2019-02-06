@@ -4,8 +4,8 @@ import com.danielgospodinow.riggster.actor.Hero;
 
 public class HealthPotion extends PotionTreasure {
 
-    public HealthPotion(int healingPoints) {
-        super(healingPoints);
+    public HealthPotion(int healingPoints, int id) {
+        super(healingPoints, id);
     }
 
     @Override

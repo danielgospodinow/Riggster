@@ -3,6 +3,8 @@ package com.danielgospodinow.riggster.networking;
 import com.danielgospodinow.riggster.actor.Player;
 import com.danielgospodinow.riggster.actor.Orc;
 import com.danielgospodinow.riggster.actor.Position;
+import com.danielgospodinow.riggster.treasure.Treasure;
+import com.danielgospodinow.riggster.utils.Logger;
 
 import java.awt.*;
 import java.io.IOException;
@@ -39,8 +41,7 @@ public class NetworkOperator {
         try {
             enemiesInfo = this.client.getSocketInputStream().readUTF().split("@");
         } catch (IOException e) {
-            System.out.println("Failed to retrieve enemies' information!");
-            e.printStackTrace();
+            Logger.getInstance().logError("Failed to retrieve enemies' information!", e);
         }
 
         if(!(enemiesInfo.length == 0 || enemiesInfo.length == 1 && enemiesInfo[0].equals(""))) {
@@ -67,8 +68,7 @@ public class NetworkOperator {
         try {
             playersInfo = this.client.getSocketInputStream().readUTF().split("@");
         } catch (IOException e) {
-            System.out.println("Failed to retrieve other characters' information!");
-            e.printStackTrace();
+            Logger.getInstance().logError("Failed to retrieve other characters' information!", e);
         }
 
         if(!(playersInfo.length == 0 || playersInfo.length == 1 && playersInfo[0].equals(""))) {
@@ -88,32 +88,28 @@ public class NetworkOperator {
         return characters;
     }
 
-//    public List<Rectangle> retrieveRemainingTreasures() {
-//        List<Rectangle> remainingTreasures = new ArrayList<Rectangle>();
+    public List<Integer> retrieveRemainingTreasures() {
+        List<Integer> remainingTreasures = new ArrayList<Integer>();
 
-//        String[] treasuresInfo = new String[] {};
-//        try {
-//            treasuresInfo = this.client.getSocketInputStream().readUTF().split("@");
-//        } catch (IOException e) {
-//            System.out.println("Failed to retrieve remaining treasures information!");
-//            e.printStackTrace();
-//        }
-//
-//        if(!(treasuresInfo.length == 0 || treasuresInfo.length == 1 && treasuresInfo[0].equals(""))) {
-//            for(int i=0; i<treasuresInfo.length; ++i) {
-//                String[] args = treasuresInfo[i].split(" ");
-//
-//                int x = Integer.parseInt(args[0]);
-//                int y = Integer.parseInt(args[1]);
-//                int width = Integer.parseInt(args[2]);
-//                int height = Integer.parseInt(args[3]);
-//
-//                remainingTreasures.add(new Rectangle(x, y, width, height));
-//            }
-//        }
+        String[] treasuresInfo = new String[] {};
+        try {
+            treasuresInfo = this.client.getSocketInputStream().readUTF().split("@");
+        } catch (IOException e) {
+            Logger.getInstance().logError("Failed to retrieve remaining treasures information!", e);
+        }
 
-//        return remainingTreasures;
-//    }
+        if(!(treasuresInfo.length == 0 || treasuresInfo.length == 1 && treasuresInfo[0].equals(""))) {
+            for(int i=0; i<treasuresInfo.length; ++i) {
+                String[] args = treasuresInfo[i].split(" ");
+
+                int id = Integer.parseInt(args[0]);
+
+                remainingTreasures.add(id);
+            }
+        }
+
+        return remainingTreasures;
+    }
 
     public void updateEnemyStatus(Orc enemy, boolean currentlyInUse) {
         this.client.writeMessage(String.format("%s %s %d %d %d %s",
@@ -143,8 +139,9 @@ public class NetworkOperator {
         this.client.writeMessage(String.format("%s %s %s %d %d", NetworkOperations.CHARACTER_INITIALIZATION.toString(), character.getSpriteName(), character.getName(), character.getPosition().row, character.getPosition().col));
     }
 
-    public void removeTreasure(Rectangle rectangle) {
-        this.client.writeMessage(String.format("%s %d %d %d %d", NetworkOperations.REMOVE_TREASURE.toString(), rectangle.x, rectangle.y, rectangle.width, rectangle.height));
+    public void removeTreasure(Treasure treasure) {
+        this.client.writeMessage(String.format("%s %d", NetworkOperations.REMOVE_TREASURE.toString(),
+                treasure.getId()));
     }
 
     public String getMapFileName() {

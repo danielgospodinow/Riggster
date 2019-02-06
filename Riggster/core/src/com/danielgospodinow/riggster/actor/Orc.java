@@ -34,7 +34,7 @@ public class Orc extends Enemy {
     private boolean currentlyInUseByNetwork = false;
 
     public Orc(String name, int row, int col, int health, int damage, Player character, NetworkOperator networkOperator) {
-        super(name, health, 0, new Weapon("orc weapon", damage), null);
+        super(name, health, 0, new Weapon("orc weapon", damage, -1), null);
         this.sprite = new Sprite(new Texture(Gdx.files.internal(spriteName + ".png")));
 
         this.nameLabel = new Label(enemyName, new Label.LabelStyle(new BitmapFont(), Color.RED));
@@ -94,7 +94,6 @@ public class Orc extends Enemy {
                 this.networkOperator.updateEnemyStatus(this, false);
                 this.isChasing = false;
             } else {
-                //TODO: send that the enemy died and to be removed from every client
                 this.networkOperator.removeEnemy(this);
             }
         } else {

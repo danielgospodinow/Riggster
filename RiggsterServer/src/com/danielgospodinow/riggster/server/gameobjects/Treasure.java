@@ -2,17 +2,15 @@ package com.danielgospodinow.riggster.server.gameobjects;
 
 public class Treasure {
 
-    private int x;
-    private int y;
+    private int id;
 
-    public Treasure(int x, int y) {
-        this.x = x;
-        this.y = y;
+    public Treasure(int id) {
+        this.id = id;
     }
 
     @Override
     public String toString() {
-        return String.format("%d %d", this.x, this.y);
+        return String.format("%d", this.id);
     }
 
     @Override
@@ -22,6 +20,6 @@ public class Treasure {
         if (!(other instanceof Treasure))return false;
         Treasure otherTreasure = (Treasure)other;
 
-        return (otherTreasure.x == this.x && otherTreasure.y == this.y);
+        return (otherTreasure.id == this.id);
     }
 }

@@ -4,8 +4,8 @@ import com.danielgospodinow.riggster.actor.Hero;
 
 public class ManaPotion extends PotionTreasure {
 
-    public ManaPotion(int manaPoints) {
-        super(manaPoints);
+    public ManaPotion(int manaPoints, int id) {
+        super(manaPoints, id);
     }
 
     @Override

@@ -5,8 +5,8 @@ import com.danielgospodinow.riggster.server.gameobjects.Player;
 import com.danielgospodinow.riggster.server.gameobjects.Position;
 import com.danielgospodinow.riggster.server.utils.Logger;
 import com.danielgospodinow.riggster.server.utils.MapLoader;
+import com.danielgospodinow.riggster.server.utils.NetworkOperations;
 
-import java.awt.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -39,13 +39,13 @@ public class Server {
 
     private ConcurrentHashMap<Integer, ServerRunnable> clients;
     private ConcurrentHashMap<Integer, Player> clientCharacters;
-    private ConcurrentLinkedQueue<Rectangle> treasures;
+    private ConcurrentLinkedQueue<Integer> treasureIds;
     private ConcurrentLinkedQueue<Enemy> enemies;
 
     private Server() {
         this.clients = new ConcurrentHashMap<>();
         this.clientCharacters = new ConcurrentHashMap<>();
-        this.treasures = new ConcurrentLinkedQueue<>(MapLoader.loadTreasures());
+        this.treasureIds = new ConcurrentLinkedQueue<>(MapLoader.loadTreasures());
         this.enemies = new ConcurrentLinkedQueue<>(MapLoader.loadEnemies());
     }
 
@@ -150,11 +150,13 @@ public class Server {
                 .findFirst()
                 .orElseThrow();
 
-        if (clientId == currentEnemy.getClientOwner()) {
-            currentEnemy.updateInformation(clientId, row, col, health, currentlyInUse);
-        } else {
-            if (!currentEnemy.isCurrentlyInUse()) {
+        synchronized (this) {
+            if (clientId == currentEnemy.getClientOwner()) {
                 currentEnemy.updateInformation(clientId, row, col, health, currentlyInUse);
+            } else {
+                if (!currentEnemy.isCurrentlyInUse()) {
+                    currentEnemy.updateInformation(clientId, row, col, health, currentlyInUse);
+                }
             }
         }
 
@@ -182,12 +184,16 @@ public class Server {
     }
 
     public void registerPlayer(int playerID, Player player) {
-        clientCharacters.put(playerID, player);
+        this.clientCharacters.put(playerID, player);
     }
 
-//    public void removeTreasure(Rectangle treasure) {
-//        this.treasures.remove(treasure);
-//    }
+    public void removeTreasure(int treasureId) {
+        this.treasureIds.remove(treasureId);
+    }
+
+    public ConcurrentLinkedQueue<Integer> getTreasureIds() {
+        return this.treasureIds;
+    }
 
     private Socket acceptClient() {
         Socket socket = null;

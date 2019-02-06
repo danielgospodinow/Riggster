@@ -6,8 +6,8 @@ public class Spell extends FightTreasure {
 
     private int manaCost;
 
-    public Spell(String name, int damage, int manaCost) {
-        super(name, damage);
+    public Spell(String name, int damage, int manaCost, int id) {
+        super(name, damage, id);
         this.manaCost = manaCost;
     }
 

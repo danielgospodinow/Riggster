@@ -1,4 +1,4 @@
-package com.danielgospodinow.riggster.server;
+package com.danielgospodinow.riggster.server.utils;
 
 public enum NetworkOperations {
 

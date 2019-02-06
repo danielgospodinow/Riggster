@@ -104,15 +104,16 @@ public class PlayScreen implements Screen {
         // Load treasure objects from map
         MapObjects treasureMapObjects = this.map.getLayers().get(4).getObjects();
         for (MapObject mapObject : treasureMapObjects) {
+            int id = (Integer) mapObject.getProperties().get("id");
             int x = Math.round((Float) mapObject.getProperties().get("x"));
             int y = Math.round((Float) mapObject.getProperties().get("y"));
             int width = Math.round((Float) mapObject.getProperties().get("width"));
             int height = Math.round((Float) mapObject.getProperties().get("height"));
 
-            this.treasureObjects.put(new Rectangle(x, y, width, height), Treasure.getRandomTreasure());
+            this.treasureObjects.put(new Rectangle(x, y, width, height), Treasure.getRandomTreasure(id));
         }
-//        List<Rectangle> remainingTreasures = this.networkOperator.retrieveRemainingTreasures();
-//        this.treasureObjects.keySet().retainAll(remainingTreasures);
+        List<Integer> remainingTreasures = this.networkOperator.retrieveRemainingTreasures();
+        this.treasureObjects.values().removeIf(treasure -> !remainingTreasures.contains(treasure.getId()));
     }
 
     private void loadCamera() {
@@ -272,16 +273,10 @@ public class PlayScreen implements Screen {
                 }
                 break;
 
-//            case REMOVE_TREASURE:
-//                int treasureX = Integer.parseInt(args[1]);
-//                int treasureY = Integer.parseInt(args[2]);
-//                int treasureWidth = Integer.parseInt(args[3]);
-//                int treasureHeight = Integer.parseInt(args[4]);
-//                //TODO: FIX y coordinate
-//                Rectangle usedTreasure = new Rectangle(treasureX, treasureY, treasureWidth, treasureHeight);
-//
-//                this.treasureObjects.remove(usedTreasure);
-//                break;
+            case REMOVE_TREASURE:
+                int treasureId = Integer.parseInt(args[1]);
+                this.treasureObjects.entrySet().removeIf(currentTreasureEntry -> currentTreasureEntry.getValue().getId() == treasureId);
+                break;
         }
     }
 
@@ -293,9 +288,7 @@ public class PlayScreen implements Screen {
             if(currentTreasureEntry.getValue().isCollected()) {
                 treasureEntryIterator.remove();
 
-                Rectangle currentTreasureRectangle = currentTreasureEntry.getKey();
-                currentTreasureRectangle.y = MAP_HEIGHT - currentTreasureRectangle.height - currentTreasureRectangle.y;
-//                this.networkOperator.removeTreasure(currentTreasureRectangle);
+                this.networkOperator.removeTreasure(currentTreasureEntry.getValue());
             }
         }
     }

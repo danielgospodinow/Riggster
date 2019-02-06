@@ -1,5 +1,7 @@
 package com.danielgospodinow.riggster.networking;
 
+import com.danielgospodinow.riggster.utils.Logger;
+
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -122,7 +124,7 @@ public class Client {
         try {
             return new DataInputStream(this.clientSocket.getInputStream());
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.getInstance().logError("Failed to get socket input stream", e);
         }
 
         return null;
@@ -153,13 +155,13 @@ public class Client {
             fos.close();
         }
 
-        System.out.println("Files received successfully!");
+        System.out.println("Map files received successfully!");
     }
 
     private void printError(String message, Exception error) {
         System.out.println(message);
         if (error != null) {
-            error.printStackTrace();
+            Logger.getInstance().logError(message, error);
         }
     }
 }

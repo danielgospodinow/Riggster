@@ -4,7 +4,8 @@ public abstract class PotionTreasure extends Treasure {
 
     private int restorePoints;
 
-    public PotionTreasure(int restorePoints) {
+    public PotionTreasure(int restorePoints, int id) {
+        super(id);
         this.restorePoints = restorePoints;
     }
 
